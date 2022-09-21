@@ -17,7 +17,7 @@ if __name__ == "__main__":
         pixel_size = past_values[0]
         min_size_trk = past_values[1]
         msd_data = past_values[2]
-        indv_data = past_values[3]
+        flmt_data = past_values[3]
         sheet_size = past_values[4]
         trk_memory = past_values[5]
         search_range = past_values[6]
@@ -27,14 +27,14 @@ if __name__ == "__main__":
         pixel_size = 0.139
         min_size_trk = 0
         msd_data = True
-        indv_data = False
+        flmt_data = False
         sheet_size = 10
         trk_memory = 5 
         search_range = 35
         trk_algo = 'numba'
 
         # This is the order that the wanted values are saved
-        Default_values = [pixel_size,min_size_trk,msd_data,indv_data,sheet_size,trk_memory,search_range,trk_algo]
+        Default_values = [pixel_size,min_size_trk,msd_data,flmt_data,sheet_size,trk_memory,search_range,trk_algo]
 
         with open('Default_values.pkl', 'wb') as f:
             pickle.dump(Default_values, f)
