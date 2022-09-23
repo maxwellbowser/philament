@@ -161,8 +161,6 @@ if __name__ == '__main__':
 
     thresh_check_frame.mainloop()
 
-    root.bind('<Return>', double_check)
-
 
 # setting the thresholding value to be used when thresholding
     threshold_value = int(value.get())
