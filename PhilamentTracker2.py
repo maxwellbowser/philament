@@ -19,6 +19,7 @@ import tifffile as tif
 import tkinter as tk
 import trackpy as tp
 import random
+from multiprocessing import freeze_support
 
 # This program is meant to take input of prerecorded .tif videos of bright objects on a dark background
 # and output thresholded .tif videos, along with an excel sheet of the mean squared displacement of each 
