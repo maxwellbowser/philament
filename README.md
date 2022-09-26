@@ -9,7 +9,7 @@ to work together @ ryanbowser@arizona.edu (im new to cs, so be warned lol).
 
 
 
-Hope you enjoy my programs! ʕ•́ᴥ•̀ʔっ
+Hope you enjoy my scripts! ʕ•́ᴥ•̀ʔっ
 
 -Ryan
 
