@@ -5,6 +5,7 @@ Created on Aug 9, 2022
 '''
 
 from datetime import date
+import multiprocessing
 from tkinter import filedialog as fd
 from tkinter import ttk
 from tkinter.messagebox import showinfo
@@ -26,9 +27,12 @@ from multiprocessing import freeze_support
 # object for all the imported videos!
 
 # All code and comments written by Ryan Bowser (@maxwellbowser on github, ryanbowser@arizona.edu)
-# Feel free to send me an email if you have any questions
+# Feel free to send me an email if you have any questions!
 
 if __name__ == '__main__':
+
+    # This line is neccesary for proper running after being compiled with pyinstaller
+    multiprocessing.freeze_support()
 
     print("""
 
@@ -50,7 +54,6 @@ if __name__ == '__main__':
     """)
 
 # Sheet size formatting the excel file at the end
-
     sheet_size = int(input())
 
     threshold_value = 100
@@ -152,7 +155,7 @@ if __name__ == '__main__':
         column=1, row=2, padx=20, pady=5)
 
     retry_but = ttk.Button(thresh_check_frame, text='Retry', command=double_check
-                           ).grid(column=0, row=2, padx=20, pady=5)
+                        ).grid(column=0, row=2, padx=20, pady=5)
 
     new_thresh_label = ttk.Label(thresh_check_frame, text='Old T Value').grid(
         column=1, row=0, padx=20, pady=5)
@@ -264,7 +267,6 @@ if __name__ == '__main__':
 
 # Some things are commented out, because I'm not using those data but i want to be able to enable it
 # for other people
-
     tp.quiet()
 
     # Detecting the saved & thresholded images in directory, and getting
@@ -294,7 +296,7 @@ if __name__ == '__main__':
     
     # Breaking the list into  groupings
     split_list = [thresholded_tifs[i:i + sheet_size]
-                  for i in range(0, len(thresholded_tifs), sheet_size)]
+                for i in range(0, len(thresholded_tifs), sheet_size)]
 
 
     # Progress bar from above
@@ -334,22 +336,21 @@ if __name__ == '__main__':
 
             progress.set(progress.get() + 1)
             root.update()
-
+            
             frames = tif.imread(f'{split_list[j][i]}')
 
             # tracking the objects
             f = tp.batch(frames[:], 25, invert=True,
-                         engine='numba', processes='auto')
+                        engine='numba', processes='auto')
 
             t = tp.link_df(f, 35, memory=5)
-
+            
             squared_motion = tp.motion.imsd(t, 0.139, 5)
 
             filename = os.path.basename(split_list[j][i])
 
             # to specify which movie the data came from
             file_num = int(filename[-6:-4])
-
             # The comments below are to insert the columns for x, y, particle,
             # ect...
 
@@ -369,7 +370,7 @@ if __name__ == '__main__':
 
             # column_one.append(df2)
 
-            column_two.append(transposed_msd)
+            column_two.append(transposed_ms)
 
             #paths = tp.plot_traj(t, mpp=0.139, label=True, block=False)
             # paths.figure.savefig(f'{file_num}.png')
@@ -390,6 +391,6 @@ if __name__ == '__main__':
         writer.save()
 
     showinfo(title="Finished",
-             message=f"All Files Tracked and Saved")
+            message=f"All Files Tracked and Saved")
     folder = os.getcwd()
     os.startfile(folder)

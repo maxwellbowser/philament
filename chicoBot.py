@@ -1,8 +1,3 @@
-'''
-Created on Sep 7, 2022
-
-@author: panch
-'''
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from datetime import date, time
 import email
@@ -24,35 +19,32 @@ from bs4 import BeautifulSoup
 import requests
 import random
 
-#with open('Chico email list.txt') as f:
-#   email_list = f.readlines()
-    
+with open('Email_list.pickle', 'rb') as f:
+    EmailList = pickle.load(f)
 
-#Setting up message
-todaysDate = date.today()
-MonthDay = str(todaysDate)[5:]
+with open('List of cities.txt') as r:
+    temp_var2 = r.read()
 
-Greeting = """Good Morning !
-"""
-
-Body = ''' 
-
-Please send an email back with todays tasks, and I'll take care of the rest!
-
-'''
+cities = temp_var2.split(' ')
+cities.pop()
+randomnum = random.randint(0,len(cities))
 
 
-Salutation = """   
-        
-You got this!
--Chico
-
-p.s. Make sure to separate by commas and end on a comma!
-             """
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
 
 
-message = Greeting + Body + Salutation
-to_do = []
+def weather(city):
+    city = city.replace(" ", "+")
+    res = requests.get(f'https://www.google.com/search?q={city}&oq={city}&aqs=chrome.0.35i39l2j0l4j46j69i60.6128j1j7&sourceid=chrome&ie=UTF-8', headers=headers)
+    print("Searching...\n")
+    soup = BeautifulSoup(res.text, 'html.parser')
+    location = soup.select('#wob_loc')[0].getText().strip()
+    time = soup.select('#wob_dts')[0].getText().strip()
+    info = soup.select('#wob_dc')[0].getText().strip()
+    weather = soup.select('#wob_tm')[0].getText().strip()    
+    return location, time, info, weather
+
 
 # Gmail API utils
 # for encoding/decoding messages in base64
@@ -247,55 +239,34 @@ def read_message(service, message):
 
 # This is where MY code starts lol, i kinda took the above code from a website
 
+city = cities[randomnum]
+city = city+" weather"
+x = weather(city)
 
-send_message(service, 'panchobowz@gmail.com', "To-Do Items Request", message)
+todaysDate = date.today()
+MonthDay = str(todaysDate)[5:]
 
-results = search_messages(service, f"{MonthDay}")
+print(x)
 
-while len(results) == 0:
-    results = search_messages(service, f"{MonthDay}")
-    time.sleep(5)
+Body = f''' 
+Today in 
+'''
 
-print(f"Found {len(results)} results.")
-# for each email matched, read it (output plain/text to console & save
-# HTML and attachments)
-
-for msg in results:
-    read_message(service, msg)
-
-
-#Using that List to restructure email for to-do list
-
-Greeting = """Good Afternoon Ryan!
-             
-Today for the to-do list you put:
-
-"""
-num = 1
-to_do = parse_parts.text.split(',')
-to_do.pop()
 
 Salutation = """   
         
 You got this!
 -Chico
-
              """
 
-
-tasks = ''
-for x in range(0, len(to_do)):
-    tasks = tasks + f'{num}.) ' + to_do[x] + '\n'
-    num = num + 1
-
-Body = f'{tasks}'
-
-with open(f'{MonthDay}.pkl','wb') as f:
-    pickle.dump(to_do,f)
+#for i in range(0, EmailList):
+#    Greeting = f"""Good Morning {EmailList[i][1]}!
+#    """
+Greeting = f"""Good Morning {EmailList[3][1]}!
+"""
 
 message = Greeting + Body + Salutation
 
-send_message(service, 'panchobowz@gmail.com', "To-Do List Dawgg", message)
 
 
-print('email sent')
+#send_message(service, 'panchobowz@gmail.com', "To-Do Items Request", message)

@@ -6,10 +6,9 @@ import pickle
 from  ttkthemes import ThemedStyle
 import pandas as pd
 
+
 if __name__ == "__main__":
-
     
-
     try:
         with open('Default_values.pkl', 'rb') as f:
            past_values = pickle.load(f)
@@ -45,7 +44,7 @@ if __name__ == "__main__":
    
     root = tk.Tk()
     root.title('Welcome to Philament Tracker!')
-    root.geometry('350x600')
+    root.geometry('550x600')
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.configure(background = 'grey14')
@@ -77,23 +76,29 @@ if __name__ == "__main__":
     ttk.Label(values_frame, text="Path linking strategy:", font=(
     Label_font, font_size)).grid(column=0, row=5, padx=5, pady=5)
 
-'''
-    ttk.Entry(values_frame, intvariable=pixel_size, font=(
+    pixel_size = ttk.Entry(values_frame, font=(
     Label_font, font_size)).grid(column=1, row=0, padx=5, pady=5)
-    ttk.Entry(values_frame, intvariable=min_size_trk, font=(
+    min_size_trk = ttk.Entry(values_frame, font=(
     Label_font, font_size)).grid(column=1, row=1, padx=5, pady=5)
-    ttk.Entry(values_frame, intvariable=sheet_size, font=(
+    sheet_size = ttk.Entry(values_frame, font=(
     Label_font, font_size)).grid(column=1, row=2, padx=5, pady=5)
-    ttk.Entry(values_frame, intvariable=trk_memory, font=(
+    trk_memory = ttk.Entry(values_frame, font=(
     Label_font,font_size)).grid(column=1, row=3, padx=5, pady=5)
-    ttk.Entry(values_frame, intvariable=search_range, font=(
+    search_range = ttk.Entry(values_frame, font=(
     Label_font, font_size)).grid(column=1, row=4, padx=5, pady=5)
-    ttk.Menubutton(values_frame, intvariable=trk_algo, font=(
-    Label_font, font_size)).grid(column=1, row=5, padx=5, pady=5)
-'''
+    menubut = ttk.Menubutton(values_frame, text="Strategies")
+    menubut.grid(column=1, row=5, padx=5, pady=5)
+
+    file = tk.Menu(menubut, tearoff=0)
+    menubut["menu"] = file
+
+
+    file.add_radiobutton(label = 'Numba')
+    file.add_radiobutton(label = 'Recursive')
+    file.add_radiobutton(label = 'Nonrecursive')
+    file.add_radiobutton(label = 'Drop')
+    file.add_radiobutton(label = 'Auto')
     
-
-
 
     
 root.mainloop()
