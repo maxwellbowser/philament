@@ -5,7 +5,7 @@ and these are the python programs that I am working on so far. I'd say 3/4 of th
 are just random projects I think are fun.
 
 If you are a fellow student at University of Arizona, and you are interested in doing cool stuff I'd love the opportunity 
-to work together (im new to cs, so be warned lol).
+to work together @ ryanbowser@arizona.edu (im new to cs, so be warned lol).
 
 
 
