@@ -57,14 +57,13 @@ elif int(Weather_info[3]) < 70 and int(Weather_info[3]) >= 40:
 else:
     remark = 'Man thats chilly! I hope Ryan puts some hot cocoa in my bowl!'
 
+
 Body = f''' 
-I hope you're having a great week! Ryan finally got me a computer box, so i could start sending you emails, and man it's hard to type with these paws! There's no way im going anywhere near that mouse though, i'm nothing like those cats! 
+    I hope you're having a great week! Ryan finally got me a computer box, so i could start sending you emails, and man it's hard to type with these paws! There's no way im going anywhere near that mouse though, i'm nothing like those cats! 
 
+    Anyways, Ryan said i should try and help your day go a little smoother, so i found some useful tips. He never told me what city we live in, so I'm just gonna guess every week, let me know if i'm getting close!
 
-Anyways, Ryan said i should try and help your day go a little smoother, so i found some useful tips! He never told me what city we live in so I'm just gonna guess every week, let me know if i'm getting close!
-
-
-I found out that today in {Weather_info[0]}, it's gonna be {Weather_info[3]} degrees, and {Weather_info[2].lower()} outside! {remark}
+    I found out that today in {Weather_info[0]}, it's gonna be {Weather_info[3]} degrees, and {Weather_info[2].lower()} outside! {remark}
 
 '''
 
@@ -77,20 +76,14 @@ Good luck with the rest of the week, I know you're gonna do great!
              """
 
 
-Greeting = f"""Good Morning {EmailList[2][1]}!
-"""
-
-message = Greeting + Body + Salutation
-
-
 
 yag = yagmail.SMTP(user='mr.secretarychico@gmail.com', password=chico_password)
 
-#sending the email
-# for i in range (0,1):
-
-yag.send(to='panchobowz@gmail.com', subject='Chico Check-in', contents=message)
-print("Email sent successfully")
-
-yag.send(to='alyssamagee@arizona.edu', subject='Chico Check-in', contents=message)
-print("Email sent successfully")
+# sending the email
+for i in range (0,len(EmailList)):
+    
+    Greeting = f"""Good Morning {EmailList[i][1]}!
+    """
+    message = Greeting + Body + Salutation
+    yag.send(to=EmailList[i][0], subject=f'Chico\'s Check-In {MonthDay}', contents=message)
+    print(f'Sent to {EmailList[i][1]}')
