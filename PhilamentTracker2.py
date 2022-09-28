@@ -67,36 +67,25 @@ if __name__ == '__main__':
     browse_frame.grid(column=0, row=0)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
-
+    
     def select_files():
-        try:
+    
+        filetypes = (
+            ('TIFF Files', '*.tif'),
+            ('All files', '*.*')
+        )
+        filepath =[]
 
-            filetypes = (
-                ('TIFF Files', '*.tif'),
-                ('All files', '*.*')
-            )
-            global filepath
+        filepath = fd.askopenfilenames(
+            title='Open files',
+            initialdir=r'C:\Users\Desktop',
+            filetypes=filetypes)
 
-            filepath = fd.askopenfilenames(
-                title='Open files',
-                initialdir=r'C:\Users\panch\Dropbox\Desktop',
-                filetypes=filetypes)
-            root.destroy()
-            pass
-        except:
-            pass
+        return filepath
+    
+    filepath = select_files()
 
-    open_button = ttk.Button(
-        browse_frame,
-        text='Open Files',
-        command=select_files
-    )
-
-    open_button.pack(expand=True)
-
-    browse_frame.mainloop()
-
-
+    root.destroy()
 
     # Gui to help user find best thresholding value for videos 
     # (Picks a random chosen video to use)
@@ -120,6 +109,7 @@ if __name__ == '__main__':
     value = tk.StringVar(thresh_check_frame, threshold_value)
 
     oldThreshold = tk.StringVar()
+
 
     def double_check():
 
@@ -370,7 +360,7 @@ if __name__ == '__main__':
 
             # column_one.append(df2)
 
-            column_two.append(transposed_ms)
+            column_two.append(transposed_msd)
 
             #paths = tp.plot_traj(t, mpp=0.139, label=True, block=False)
             # paths.figure.savefig(f'{file_num}.png')

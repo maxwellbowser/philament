@@ -47,7 +47,8 @@ if __name__ == "__main__":
     root.geometry('550x600')
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
-    root.configure(background = 'grey14')
+    root.minsize(500, 300)
+    # root.configure(background = 'grey14')
 
     button_frame = ttk.Frame(root,  padding="5 5 10 10")
     button_frame.grid(column=0, row=1)
@@ -58,11 +59,9 @@ if __name__ == "__main__":
     options_frame = ttk.Frame(root,  padding="5 5 10 10")
     options_frame.grid(column=1, row=0)
 
+    #style =ThemedStyle(root)
+    #style.set_theme('equilux')
     
-    style =ThemedStyle(root)
-    style.set_theme('equilux')
-    
-
     ttk.Label(values_frame, text="Pixel size:", font=(
     Label_font, font_size)).grid(column=0, row=0, padx=5, pady=5)
     ttk.Label(values_frame, text="Min object size:", font=(
@@ -91,7 +90,6 @@ if __name__ == "__main__":
 
     file = tk.Menu(menubut, tearoff=0)
     menubut["menu"] = file
-
 
     file.add_radiobutton(label = 'Numba')
     file.add_radiobutton(label = 'Recursive')

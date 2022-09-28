@@ -59,9 +59,9 @@ else:
 
 
 Body = f''' 
-    I hope you're having a great week! Ryan finally got me a computer box, so i could start sending you emails, and man it's hard to type with these paws! There's no way im going anywhere near that mouse though, i'm nothing like those cats! 
+    I hope you're having a good week! Ryan finally got me a computer box, so I could start sending you emails, and man it's hard to type with these paws! There's no way I'm going anywhere near that mouse though, I'm nothing like those cats! 
 
-    Anyways, Ryan said i should try and help your day go a little smoother, so i found some useful tips. He never told me what city we live in, so I'm just gonna guess every week, let me know if i'm getting close!
+    Anyways, Ryan said I should try and help your day go a little smoother, so I found some useful tips. He never told me what city we live in, so I'm just gonna guess every week, let me know if I'm getting close!
 
     I found out that today in {Weather_info[0]}, it's gonna be {Weather_info[3]} degrees, and {Weather_info[2].lower()} outside! {remark}
 
