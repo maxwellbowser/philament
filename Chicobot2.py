@@ -8,8 +8,6 @@ import requests
 import random
 from datetime import date
 
-
-
 chico_password = keyring.get_password('panch', 'chico')
 
 with open('Email_list.pickle', 'rb') as f:
@@ -29,7 +27,6 @@ x = random.choices(numbers, weights = (92, 8))
 
 if x == [1]:
     WeeklyLink = 'https://www.tiktok.com/@sock.my.this.nutz/video/7032330308221504795?is_from_webapp=1&sender_device=pc&web_id=7148631246494500394'
-
 
 
 headers = {
@@ -66,8 +63,8 @@ else:
     remark = 'Man thats chilly! I hope Ryan puts some hot cocoa in my bowl!'
 
 
-Greeting = f"""Good Morning {EmailList[1][1]}!
-    """
+# Greeting = f"""Good Morning {EmailList[1][1]}!
+#    """
 
 Body = f''' 
     I hope you're having a great week so far! I got to bark at a cat today and Ryan took me for a walk, so I've got no complaints with my life.
@@ -87,20 +84,19 @@ Sending lots of love, I hope you're feeling it!
 p.s. Hey guys, this is Ryan. I asked Chico if I could start putting pictures of him in his emails and he was alright with it so here ya go, enjoy!
              """
 
-message = Greeting + Body + Salutation
+# message = Greeting + Body + Salutation
 
 yag = yagmail.SMTP(user='mr.secretarychico@gmail.com', password=chico_password)
-yag.send(to=EmailList[1][0], subject=f'Chico\'s Check-In {MonthDay}', contents=message, attachments='Chico-picture.jpeg')
+# yag.send(to=EmailList[1][0], subject=f'Chico\'s Check-In {MonthDay}', contents=message, attachments='Chico-picture.jpeg')
 
 
 # sending the email
-'''
+
 for i in range (0,len(EmailList)):
     
-    Greeting = f"""Good Morning {EmailList[i][1]}!
+    Greeting = f"""Good Afternoon {EmailList[i][1]}!
     """
     message = Greeting + Body + Salutation
     yag.send(to=EmailList[i][0], subject=f'Chico\'s Check-In {MonthDay}', contents=message, attachments='Chico-picture.jpeg')
     print(f'Sent to {EmailList[i][1]}')
 
-'''
