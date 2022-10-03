@@ -44,7 +44,6 @@ def weather(city):
     weather = soup.select('#wob_tm')[0].getText().strip()    
     return location, time, info, weather
 
-
 city = cities[randomnum]
 city = city+" weather"
 Weather_info = weather(city)
@@ -63,8 +62,19 @@ else:
     remark = 'Man thats chilly! I hope Ryan puts some hot cocoa in my bowl!'
 
 
-# Greeting = f"""Good Morning {EmailList[1][1]}!
-#    """
+t = time.localtime()
+current_time = time.strftime("%H:%M:%S", t)
+
+if int(current_time[:2]) <= 12:
+    timed_greeting = 'Good Morning'
+elif int(current_time[:2]) > 12 and int(current_time[:2]) < 17:
+    timed_greeting = 'Good Afternoon'
+elif int(current_time[:2]) >= 17:
+    timed_greeting = 'Good Evening'
+
+random_ending = ['Hope your day is as wonderful as you are!','Sending lots of love, I hope you\'re feeling it!', 'You got this!',
+'Good luck with the rest of the week, I know you\'re gonna do great!']
+
 
 Body = f''' 
     I hope you're having a great week so far! I got to bark at a cat today and Ryan took me for a walk, so I've got no complaints with my life.
@@ -76,27 +86,41 @@ Body = f'''
 
 
 Salutation = """   
-Sending lots of love, I hope you're feeling it!
+Hope your day is as wonderful as you are!
 
 -Chico :)
 
 
-p.s. Hey guys, this is Ryan. I asked Chico if I could start putting pictures of him in his emails and he was alright with it so here ya go, enjoy!
-             """
 
-# message = Greeting + Body + Salutation
+p.s.
+Just as a little explanation for this email, incase someone signed you up, these will be weekly / twice a week cute emails from my dog Chico! If you would like to be removed from this list just send an email back saying that.
+Thanks! 
+-Ryan
+"""
 
+
+
+everyone = False
 yag = yagmail.SMTP(user='mr.secretarychico@gmail.com', password=chico_password)
-# yag.send(to=EmailList[1][0], subject=f'Chico\'s Check-In {MonthDay}', contents=message, attachments='Chico-picture.jpeg')
+
+# sending the email to everyone
+if everyone == True:
+    for i in range (0,len(EmailList)):
+        
+        Greeting = f"""{timed_greeting} {EmailList[i][1]}!
+        """
+        message = Greeting + Body + Salutation
+        yag.send(to=EmailList[i][0], subject=f'Chico\'s Check-In {MonthDay}', contents=message, attachments='Chico-picture.jpeg')
+        print(f'Sent to {EmailList[i][1]}')
 
 
-# sending the email
 
-for i in range (0,len(EmailList)):
-    
-    Greeting = f"""Good Afternoon {EmailList[i][1]}!
-    """
+# just to me =)
+else:
+    Greeting = f'{timed_greeting} {EmailList[1][1]}!'
+
     message = Greeting + Body + Salutation
-    yag.send(to=EmailList[i][0], subject=f'Chico\'s Check-In {MonthDay}', contents=message, attachments='Chico-picture.jpeg')
-    print(f'Sent to {EmailList[i][1]}')
+    yag.send(to=EmailList[1][0], subject=f'Chico\'s Check-In {MonthDay}',
+    contents=message, attachments='Chico-picture.jpeg')
+    print(f'Sent to {EmailList[1][1]}')
 
