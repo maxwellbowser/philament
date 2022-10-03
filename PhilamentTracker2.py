@@ -21,6 +21,7 @@ import tkinter as tk
 import trackpy as tp
 import random
 from multiprocessing import freeze_support
+from statistics import mean, stdev
 
 # This program is meant to take input of prerecorded .tif videos of bright objects on a dark background
 # and output thresholded .tif videos, along with an excel sheet of the mean squared displacement of each 
@@ -56,8 +57,6 @@ if __name__ == '__main__':
 # Sheet size formatting the excel file at the end
     sheet_size = int(input())
 
-    threshold_value = 100
-
     # Setting up window and File Browsing
     root = tk.Tk()
     root.title('File Selection')
@@ -89,75 +88,85 @@ if __name__ == '__main__':
 
     # Gui to help user find best thresholding value for videos 
     # (Picks a random chosen video to use)
-    rand_file_num = random.randint(0, len(filepath))
-
-    window = tk.Tk()
-    window.title('Checking Thresholding Value')
-    window.resizable(False, False)
-    window.geometry('400x250')
-
-    thresh_check_frame = ttk.Frame(window, padding='5 5 10 10')
-    thresh_check_frame.grid(column=0, row=0)
-    window.columnconfigure(0, weight=1)
-    window.rowconfigure(0, weight=1)
-
-    checking_images = []
-
-    loaded, checking_images = cv2.imreadmulti(
-        mats=checking_images, filename = filepath[rand_file_num], flags=cv2.IMREAD_GRAYSCALE)
-
-    value = tk.StringVar(thresh_check_frame, threshold_value)
-
-    oldThreshold = tk.StringVar()
-
-
-    def double_check():
-
-        threshold_value = int(value.get())
-
-        blur = cv2.medianBlur(checking_images[0], 5)
-
-        ret, thresholded_checked = cv2.threshold(
-            blur, threshold_value, 255, cv2.THRESH_BINARY_INV)
-
-        cv2.imshow('Thresholded Image', thresholded_checked)
-        cv2.imshow('Original Image', checking_images[0])
-
-        oldThreshold.set(value.get())
-
-        cv2.waitKey(5)
-
-    def close():
-        window.destroy()
-        cv2.destroyAllWindows()
     
-    double_check()
+    # For larger sample sizes more videos will be tested
+    # Always at least 1 video, and capped at 5 if 200+ videos are being analyzed
 
-# This is designing/setting up the window for choosing the thresholding
-# value
-    old_thresh_value = ttk.Label(thresh_check_frame, textvariable=oldThreshold).grid(
-        column=1, row=1, padx=20, pady=5)
+    multiples_of_50 =  len(filepath) // 50
+    if multiples_of_50 == 1:
+        num_files_for_threshold = 2
+    elif multiples_of_50 == 2:
+        num_files_for_threshold = 3
+    elif multiples_of_50 == 3:
+        num_files_for_threshold = 4
+    elif multiples_of_50 >= 4:
+        num_files_for_threshold = 5
+    else:
+        num_files_for_threshold = 1
 
-    new_thresh_entry = ttk.Entry(thresh_check_frame, textvariable=value, ).grid(
-        column=0, row=1, padx=20, pady=5)
+    try:
+        rand_file_num = random.sample(range(0, len(filepath)), num_files_for_threshold)
+        thresh_values = []
+    except:
+        print('Please re-run program, and make sure to select files!')
+        exit()
+    #running the thresholding picker gui
+    for i in range(0, len(rand_file_num)):
 
-    cont_but = ttk.Button(thresh_check_frame, text='Continue', command=close).grid(
-        column=1, row=2, padx=20, pady=5)
+        def close():
+            window.destroy()
+            cv2.destroyAllWindows()
+        
+        def double_check(values):
+        
+            threshold_value = value.get()
 
-    retry_but = ttk.Button(thresh_check_frame, text='Retry', command=double_check
-                        ).grid(column=0, row=2, padx=20, pady=5)
+            blur = cv2.medianBlur(checking_images[0], 5)
 
-    new_thresh_label = ttk.Label(thresh_check_frame, text='Old T Value').grid(
-        column=1, row=0, padx=20, pady=5)
+            ret, thresholded_checked = cv2.threshold(
+                blur, threshold_value, 255, cv2.THRESH_BINARY_INV)
 
-    old_thresh_label = ttk.Label(thresh_check_frame, text='New T Value').grid(
-        column=0, row=0, padx=20, pady=5)
-
-    thresh_check_frame.mainloop()
+            cv2.imshow('Thresholded Image', thresholded_checked)
+            cv2.imshow('Original Image', checking_images[0])
+            cv2.waitKey(5)
 
 
-# setting the thresholding value to be used when thresholding
-    threshold_value = int(value.get())
+        window = tk.Tk()
+        window.title('Checking Thresholding Value')
+        window.resizable(False, False)
+        window.geometry('400x250')
+
+        thresh_check_frame = ttk.Frame(window, padding='5 5 10 10')
+        thresh_check_frame.grid(column=0, row=0)
+        window.columnconfigure(0, weight=1)
+        window.rowconfigure(0, weight=1)
+
+        checking_images = []
+
+        loaded, checking_images = cv2.imreadmulti(
+            mats=checking_images, filename = filepath[rand_file_num[i]], flags=cv2.IMREAD_GRAYSCALE)
+
+        # Here 100 is just a default value for the thresholding
+        value = tk.IntVar(thresh_check_frame, 100)
+        
+        # Widgets! I chose not to show value to try and eliminate human bias, so you can't say "eh i'll just go to 120 everytime"
+        slider = ttk.Scale(thresh_check_frame, from_= 0, to = 255, orient='horizontal',
+            variable = value, command= double_check, length=200).grid(column=0, row=1)
+
+        cont_but = ttk.Button(thresh_check_frame, text='Continue', command=close).grid(
+            column=1, row=1, padx=10, pady=5)
+
+        old_thresh_label = ttk.Label(thresh_check_frame, text='Determining Thresholding Value:', 
+            font = ('Arial', 12)).grid(column=0, row=0, padx=20, pady=10)
+        
+        double_check(0)
+        thresh_check_frame.mainloop()
+        thresh_values.append(value.get())
+
+
+    # setting the thresholding value to be used when thresholding
+    threshold_value = int(mean(thresh_values))
+
 
 
     # Progress bar design
@@ -240,7 +249,7 @@ if __name__ == '__main__':
             except AssertionError:
                 showinfo(
                     title="Assertion Error",
-                    message=f"Sorry, there was an error with file number: {i}\nPhil couldn't determine item {i} was a file or not")
+                    message=f"Sorry, there was an error with: {filename[i]}\nPhil couldn't determine if it is a file or not.\nPlease try again.")
 
         root.destroy()
         frame.mainloop()
