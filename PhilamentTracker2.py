@@ -24,7 +24,7 @@ from multiprocessing import freeze_support
 from statistics import mean, stdev
 
 # This program is meant to take input of prerecorded .tif videos of bright objects on a dark background
-# and output thresholded .tif videos, along with an excel sheet of the mean squared displacement of each 
+# and output thresholded .tif videos, along with an excel sheet of the mean squared displacement of each
 # object for all the imported videos!
 
 # All code and comments written by Ryan Bowser (@maxwellbowser on github, ryanbowser@arizona.edu)
@@ -66,14 +66,14 @@ if __name__ == '__main__':
     browse_frame.grid(column=0, row=0)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
-    
+
     def select_files():
-    
+
         filetypes = (
             ('TIFF Files', '*.tif'),
             ('All files', '*.*')
         )
-        filepath =[]
+        filepath = []
 
         filepath = fd.askopenfilenames(
             title='Open files',
@@ -81,18 +81,17 @@ if __name__ == '__main__':
             filetypes=filetypes)
 
         return filepath
-    
+
     filepath = select_files()
 
     root.destroy()
 
-    # Gui to help user find best thresholding value for videos 
+    # Gui to help user find best thresholding value for videos
     # (Picks a random chosen video to use)
-    
+
     # For larger sample sizes more videos will be tested
     # Always at least 1 video, and capped at 5 if 200+ videos are being analyzed
-
-    multiples_of_50 =  len(filepath) // 50
+    multiples_of_50 = len(filepath) // 50
     if multiples_of_50 == 1:
         num_files_for_threshold = 2
     elif multiples_of_50 == 2:
@@ -105,20 +104,22 @@ if __name__ == '__main__':
         num_files_for_threshold = 1
 
     try:
-        rand_file_num = random.sample(range(0, len(filepath)), num_files_for_threshold)
+        rand_file_num = random.sample(
+            range(0, len(filepath)), num_files_for_threshold)
         thresh_values = []
     except:
         print('Please re-run program, and make sure to select files!')
         exit()
-    #running the thresholding picker gui
+
+    # running the thresholding picker gui
     for i in range(0, len(rand_file_num)):
 
         def close():
             window.destroy()
             cv2.destroyAllWindows()
-        
+
         def double_check(values):
-        
+
             threshold_value = value.get()
 
             blur = cv2.medianBlur(checking_images[0], 5)
@@ -129,7 +130,6 @@ if __name__ == '__main__':
             cv2.imshow('Thresholded Image', thresholded_checked)
             cv2.imshow('Original Image', checking_images[0])
             cv2.waitKey(5)
-
 
         window = tk.Tk()
         window.title('Checking Thresholding Value')
@@ -144,30 +144,29 @@ if __name__ == '__main__':
         checking_images = []
 
         loaded, checking_images = cv2.imreadmulti(
-            mats=checking_images, filename = filepath[rand_file_num[i]], flags=cv2.IMREAD_GRAYSCALE)
+            mats=checking_images, filename=filepath[rand_file_num[i]], flags=cv2.IMREAD_GRAYSCALE)
 
         # Here 100 is just a default value for the thresholding
         value = tk.IntVar(thresh_check_frame, 100)
-        
-        # Widgets! I chose not to show value to try and eliminate human bias, so you can't say "eh i'll just go to 120 everytime"
-        slider = ttk.Scale(thresh_check_frame, from_= 0, to = 255, orient='horizontal',
-            variable = value, command= double_check, length=200).grid(column=0, row=1)
+
+        # Widgets! I chose not to show threshold value to eliminate human bias
+        # So you can't say "eh i'll just go to threshold value N everytime"
+
+        slider = ttk.Scale(thresh_check_frame, from_=0, to=255, orient='horizontal',
+                           variable=value, command=double_check, length=200).grid(column=0, row=1)
 
         cont_but = ttk.Button(thresh_check_frame, text='Continue', command=close).grid(
             column=1, row=1, padx=10, pady=5)
 
-        old_thresh_label = ttk.Label(thresh_check_frame, text='Determining Thresholding Value:', 
-            font = ('Arial', 12)).grid(column=0, row=0, padx=20, pady=10)
-        
+        old_thresh_label = ttk.Label(thresh_check_frame, text='Determining Thresholding Value:',
+                                     font=('Arial', 12)).grid(column=0, row=0, padx=20, pady=10)
+
         double_check(0)
         thresh_check_frame.mainloop()
         thresh_values.append(value.get())
 
-
     # setting the thresholding value to be used when thresholding
     threshold_value = int(mean(thresh_values))
-
-
 
     # Progress bar design
     list_len = len(filepath)
@@ -199,20 +198,20 @@ if __name__ == '__main__':
     prgbr_total = ttk.Label(frame, textvariable=items).grid(
         column=2, row=0, padx=1, pady=3)
 
-
-    # I'm using lists instead of numpy (np) arrays because of how I chose to
-    # collect and save the thresholded frames
+    # Start of the actual program, and the thresholding and saving of files
     try:
 
         for i in range(0, len(filepath)):
+
+            # incase someone selects non-files
             assert os.path.isfile(filepath[i])
             try:
+
+                threshold_images = []
                 original_images = []
 
                 loaded, original_images = cv2.imreadmulti(
                     mats=original_images, filename=f"{filepath[i]}", flags=cv2.IMREAD_GRAYSCALE)
-
-                threshold = []
 
                 filename = os.path.basename(filepath[i])
 
@@ -233,18 +232,14 @@ if __name__ == '__main__':
                     in case someone needs to understand what i'm doing)
                     '''
 
-                    threshold.append(image)
+                    threshold_images.append(image)
 
                     # Saving thresholded tiff images using tifffile
-                    threshold_array = np.array(threshold)
+                    threshold_array = np.array(threshold_images)
                     tif.imwrite("Thresh-" + filename, threshold_array)
 
                     progress.set(i + 1)
                     root.update()
-
-                # since indexes start at zero, i made this variable for the
-                # message
-                num_of_files = i + 1
 
             except AssertionError:
                 showinfo(
@@ -261,19 +256,17 @@ if __name__ == '__main__':
             message=f"Sorry, Something happened")
         pass
 
-# By finding all filepaths that end in .tif in the working directory (where the above function saves the thresholded values)
-# This function 
+    # By finding all filepaths that end in .tif in the working directory (where the thresholded videos are saved)
+    # This function is able to automatically find the filepaths for the newly thresholded videos
 
-# Some things are commented out, because I'm not using those data but i want to be able to enable it
-# for other people
+    # Some things are commented out, because I'm not using those data but i want to be able to enable it
+    # for other people eventually
+
     tp.quiet()
 
-    # Detecting the saved & thresholded images in directory, and getting
-    # filepaths into a list
-
+    # Defining Variables
     thresholded_tifs = []
     split_list = []
-
     flmnt_data = pd.DataFrame()
     msd_data = pd.DataFrame()
     # df2 = pd.DataFrame()
@@ -281,10 +274,10 @@ if __name__ == '__main__':
     # column_one = []
     column_two = []
 
+    # This allows for saving multiple sheets to the same excel file w/o overwriting
     book = op.Workbook()
     book.remove(book.active)
     todays_date = date.today()
-
     writer = pd.ExcelWriter(
         f'Analyzed_Data-{todays_date}.xlsx', engine='openpyxl')
     writer.book = book
@@ -292,13 +285,12 @@ if __name__ == '__main__':
     for x in os.listdir():
         if x.endswith('.tif'):
             thresholded_tifs.append(x)
-    
-    # Breaking the list into  groupings
+
+    # Breaking the list into nested lists, that will separate different samples
     split_list = [thresholded_tifs[i:i + sheet_size]
-                for i in range(0, len(thresholded_tifs), sheet_size)]
+                  for i in range(0, len(thresholded_tifs), sheet_size)]
 
-
-    # Progress bar from above
+    # Same progress bar code from above
     list_len = len(thresholded_tifs)
 
     root = tk.Tk()
@@ -328,22 +320,24 @@ if __name__ == '__main__':
     prgbr_total = ttk.Label(frame, textvariable=items).grid(
         column=2, row=0, padx=1, pady=3)
 
-# Tracking the filaments & saving to excel sheet
+
+# Tracking the filaments & saving to excel sheet (does n .tif videos at a time, specified by sheet_size)
+
     for j in range(0, len(split_list)):
 
         for i in range(0, len(split_list[j])):
 
             progress.set(progress.get() + 1)
             root.update()
-            
+
             frames = tif.imread(f'{split_list[j][i]}')
 
             # tracking the objects
             f = tp.batch(frames[:], 25, invert=True,
-                        engine='numba', processes='auto')
+                         engine='numba', processes='auto')
 
             t = tp.link_df(f, 35, memory=5)
-            
+
             squared_motion = tp.motion.imsd(t, 0.139, 5)
 
             filename = os.path.basename(split_list[j][i])
@@ -390,6 +384,8 @@ if __name__ == '__main__':
         writer.save()
 
     showinfo(title="Finished",
-            message=f"All Files Tracked and Saved")
+             message=f"All Files Tracked and Saved")
+
+# Opens folder where files were saved
     folder = os.getcwd()
     os.startfile(folder)
