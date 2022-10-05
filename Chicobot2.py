@@ -24,8 +24,6 @@ def cute_messages_for_alyssa(i):
     yag.send(to=EmailList[i][0], subject=f'Chico\'s Check-In {MonthDay}',
              contents=message, attachments=Weekly_picture)
     print(f'Sent to {EmailList[i][1]}')
-    print(message)
-    return
 
 
 todaysDate = date.today()
@@ -79,7 +77,7 @@ Weather_info = weather(city)
 if int(Weather_info[3]) >= 90:
     remark = 'Wow thats hot, make sure you stay cool!'
 elif int(Weather_info[3]) < 90 and int(Weather_info[3]) >= 70:
-    remark = 'Its gonna be perfect outside! If you ask me, thats great dog walking weather!'
+    remark = 'If you ask me, that\'s great dog walking weather!'
 elif int(Weather_info[3]) < 70 and int(Weather_info[3]) >= 40:
     remark = 'Mmmm I hope chilly weather is coming soon!'
 else:
@@ -101,12 +99,17 @@ random_ending = ['Hope your day is as wonderful as you are!', 'Sending lots of l
 
 
 Body = f''' 
-    I know tuesday
 
-    This week I learned about baseball, and I can't believe it! These people hit the ball away from themselves, here I thought we were on the same page, you're supposed to CHASE THE BALL!! I also found a dog who cares more about their bat than the ball, it's okay though <a href={WeeklyLink}>he's still a good boy!</a> 
+    I hope your week is going well so far, there's only a few more days until friday!🎉🎉
 
-    For today's weather in {Weather_info[0]}, it's gonna be {Weather_info[3]} degrees, and {Weather_info[2].lower()} outside! {remark}
-'''
+    This week, I learned about baseball! I can't believe that the players hit the ball away from themselves. Here I thought we were on the same page, you're supposed to CHASE THE BALL!! 
+    
+    I also found a dog who cares more about bats than the ball, it's okay though, he's still a<a href={WeeklyLink}> good boy.</a> 
+
+    For today's weather... in {Weather_info[0]}, it's gonna be {Weather_info[3]} degrees and {Weather_info[2].lower()} outside! {remark}
+
+    Finally, here's a fun dog fact for you: Making purposeful eye contact with your dog causes an oxytocin release loop similar to when a mother and her baby bond. Isn't that so cute? <3
+    '''
 
 
 Salutation = """   
@@ -116,14 +119,14 @@ I hope your day is as wonderful as you are!
 
 
 p.s.
-Just as a little explanation for this email, incase someone signed you up, these will be cute weekly / twice-a-week emails from my dog Chico! If you would like to be removed from this list just send an email back saying cancel or please stop or something. Otherwise, I hope you enjoy these emails as much as I do!
+Just as a little explanation for this email, incase someone signed you up. These will be cute weekly / twice-a-week emails from my dog Chico! If you would like to be removed from this list, just send an email back saying cancel or please stop. Otherwise, I hope you enjoy these emails as much as I do!
 
 Thanks,
 -Ryan
 """
 
 
-everyone = False
+everyone = True
 
 chico_password = keyring.get_password('panch', 'chico')
 yag = yagmail.SMTP(user='mr.secretarychico@gmail.com', password=chico_password)
@@ -142,10 +145,9 @@ if everyone == True:
             yag.send(
                 to=EmailList[i][0], subject=f'Chico\'s Check-In {MonthDay}', contents=message, attachments=Weekly_picture)
             print(f'Sent to {EmailList[i][1]}')
-            print(message)
 
 
-# just to me =)
+# just to me (testing)
 else:
     Greeting = f'{timed_greeting} {EmailList[1][1]}!'
 
