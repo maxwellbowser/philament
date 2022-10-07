@@ -22,6 +22,7 @@ import trackpy as tp
 import random
 from multiprocessing import freeze_support
 from statistics import mean, stdev
+import pickle
 
 # This program is meant to take input of prerecorded .tif videos of bright objects on a dark background
 # and output thresholded .tif videos, along with an excel sheet of the mean squared displacement of each
@@ -35,44 +36,26 @@ if __name__ == '__main__':
     # This line is neccesary for proper running after being compiled with pyinstaller
     multiprocessing.freeze_support()
 
-    print("""
+    # All this is for the starting GUI (I'm guessing I could make it smaller/more efficient)
+    # If you're reading this and have advice plz let me know!
 
-    ▒▐█▒▐█▒▐█▀▀▒██░░░▒██░░░▒▐█▀▀█▌░░▒█▒█▒█ 
-    ▒▐████▒▐█▀▀▒██░░░▒██░░░▒▐█▄▒█▌░░░▀░▀░▀ 
-    ▒▐█▒▐█▒▐█▄▄▒██▄▄█▒██▄▄█▒▐██▄█▌░░▒▄▒▄▒▄ 
-    
-    Welcome to Phil 2.0!
-    
-    Please enter the number of files you would like per list:
-    
-    ** Also please take a second to make sure the folder this program is located in
-    is free of all .tif files!!! **
-    
-    
-    .▀█▀.█▄█.█▀█.█▄.█.█▄▀　█▄█.█▀█.█─█
-    ─.█.─█▀█.█▀█.█.▀█.█▀▄　─█.─█▄█.█▄█
+    global pixel_size
+    global object_diameter
+    global full_flmt_data
+    global sheet_size
+    global trk_memory
+    global search_range
+    global trk_algo
 
-    """)
-
-# Sheet size formatting the excel file at the end
-    sheet_size = int(input())
-
-    # Setting up window and File Browsing
-    root = tk.Tk()
-    root.title('File Selection')
-    root.resizable(False, False)
-    root.geometry('300x150')
-    browse_frame = ttk.Frame(root,  padding="5 5 10 10")
-    browse_frame.grid(column=0, row=0)
-    root.columnconfigure(0, weight=1)
-    root.rowconfigure(0, weight=1)
-
+    # Function for browse window
     def select_files():
 
         filetypes = (
             ('TIFF Files', '*.tif'),
             ('All files', '*.*')
         )
+
+        global filepath
         filepath = []
 
         filepath = fd.askopenfilenames(
@@ -80,93 +63,250 @@ if __name__ == '__main__':
             initialdir=r'C:\Users\Desktop',
             filetypes=filetypes)
 
-        return filepath
+        root.destroy()
 
-    filepath = select_files()
+    # This try-except loop will check if the default values have already been made
+    # If not, it sets them to my preset values and then saves a default_value file
+    try:
+        with open('Default_values.pickle', 'rb') as f:
+            past_values = pickle.load(f)
 
-    root.destroy()
+        pixel_size = past_values[0]
+        object_diameter = past_values[1]
+        full_flmt_data = past_values[2]
+        sheet_size = past_values[3]
+        trk_memory = past_values[4]
+        search_range = past_values[5]
+        trk_algo = past_values[6]
+        fps = past_values[7]
+
+    except:
+        pixel_size = 0.139
+        object_diameter = 25
+        full_flmt_data = False
+        sheet_size = 10
+        trk_memory = 5
+        search_range = 35
+        trk_algo = 'numba'
+        fps = 5
+
+        # This is the order that the values are saved
+        Default_values = [pixel_size, object_diameter, full_flmt_data,
+                          sheet_size, trk_memory, search_range, trk_algo, fps]
+
+        with open('Default_values.pickle', 'wb') as f:
+            pickle.dump(Default_values, f)
+
+    # Setting up root & frames for the starting GUI
+    root = tk.Tk()
+    root.title('Welcome to Philament Tracker!')
+    root.geometry('550x300')
+    root.columnconfigure(0, weight=1)
+    root.rowconfigure(0, weight=1)
+    # root.resizable(False, False)
+
+    button_frame = ttk.Frame(root,  padding="5 5 10 10")
+    button_frame.grid(column=0, row=1)
+
+    values_frame = ttk.Frame(root,  padding="5 5 10 10", takefocus=True)
+    values_frame.grid(column=0, row=0)
+
+    options_frame = ttk.Frame(root,  padding="5 5 10 10")
+    options_frame.grid(column=1, row=0)
+
+    # Variables being made
+    tk_full_flmt_data = tk.BooleanVar(value=full_flmt_data)
+    tk_pixel_size = tk.DoubleVar(value=pixel_size)
+    tk_object_diameter = tk.IntVar(value=object_diameter)
+    tk_sheet_size = tk.IntVar(value=sheet_size)
+    tk_trk_memory = tk.IntVar(value=trk_memory)
+    tk_search_range = tk.IntVar(value=search_range)
+    tk_fps = tk.IntVar(value=fps)
+
+    # Labels being made
+    ttk.Label(values_frame, text="Pixel size:", anchor="w").grid(
+        column=0, row=0, padx=5, pady=5, sticky='W')
+    ttk.Label(values_frame, text="Object diameter:\nMUST be an ODD integer", anchor="w").grid(
+        column=0, row=1, padx=5, pady=5, sticky='W')
+    ttk.Label(values_frame, text="# of files per condition:", anchor="w").grid(
+        column=0, row=2, padx=5, pady=5, sticky='W')
+    ttk.Label(values_frame, text="Object tracking memory:\n(# of frames)", anchor="w").grid(
+        column=0, row=3, padx=5, pady=5, sticky='W')
+    ttk.Label(values_frame, text="Search radius:\n(pixels)", anchor="w").grid(
+        column=0, row=4, padx=5, pady=5, sticky='W')
+    ttk.Label(values_frame, text="Frames per second:", anchor="w").grid(
+        column=0, row=5, padx=5, pady=5, sticky='W')
+    ttk.Label(values_frame, text="Path linking strategy:\n(Numba is recommended)", anchor="w").grid(
+        column=0, row=6, padx=5, pady=5, sticky='W')
+
+    # Entries being made
+    full_flmt_data = ttk.Checkbutton(options_frame, text="Include full object data? \n(Warning: Large files)",
+                                     variable=full_flmt_data, onvalue=True, offvalue=False).grid(
+        column=0, row=0, padx=10, pady=5, sticky='N')
+
+    ttk.Entry(values_frame, textvariable=tk_pixel_size).grid(
+        column=1, row=0, padx=5, pady=5)
+    ttk.Entry(values_frame, textvariable=tk_object_diameter).grid(
+        column=1, row=1, padx=5, pady=5)
+    ttk.Entry(values_frame, textvariable=tk_sheet_size).grid(
+        column=1, row=2, padx=5, pady=5)
+    ttk.Entry(values_frame, textvariable=tk_trk_memory).grid(
+        column=1, row=3, padx=5, pady=5)
+    ttk.Entry(values_frame, textvariable=tk_search_range).grid(
+        column=1, row=4, padx=5, pady=5)
+    ttk.Entry(values_frame, textvariable=tk_fps).grid(
+        column=1, row=5, padx=5, pady=5)
+    menubut = ttk.Menubutton(values_frame, text='Select One')
+    menubut.grid(column=1, row=6, padx=5, pady=5)
+
+    file = tk.Menu(menubut, tearoff=0)
+    menubut["menu"] = file
+
+    # Functions for buttons
+    def set_value(x):
+        global trk_algo
+        trk_algo = x
+
+    def close_window():
+        root.destroy()
+        # exit()
+
+    # Making RadioButtons (would've made with for loop to save space, but it caused problems, and this is more readable anyways)
+    file.add_radiobutton(
+        label='Numba',
+        command=lambda: set_value('numba'))
+    file.add_radiobutton(
+        label='Recursive',
+        command=lambda: set_value('recursive'))
+    file.add_radiobutton(
+        label='Nonrecursive',
+        command=lambda: set_value('nonrecursive'))
+    file.add_radiobutton(
+        label='Drop',
+        command=lambda: set_value('drop'))
+    file.add_radiobutton(
+        label='Auto',
+        command=lambda: set_value('auto'))
+
+    browse_button = ttk.Button(
+        options_frame,
+        text='Open Files',
+        command=select_files
+    ).grid(column=1, row=1, padx=1, pady=5)
+
+    close_button = ttk.Button(
+        options_frame,
+        text='Cancel',
+        command=close_window
+    ).grid(column=0, row=1, padx=1, pady=5)
+
+    root.mainloop()
+
+    # setting regular variables equal to the tkinter variables
+    try:
+        pixel_size = tk_pixel_size.get()
+        object_diameter = tk_object_diameter.get()
+        full_flmt_data = tk_full_flmt_data.get()
+        sheet_size = tk_sheet_size.get()
+        trk_memory = tk_trk_memory.get()
+        search_range = tk_search_range.get()
+        fps = tk_fps.get()
+    except:
+        showinfo(title='Whoops!',
+                 message='Error: Invalid Input\nPlease restart program')
+        exit()
+    Default_values = [pixel_size, object_diameter, full_flmt_data,
+                      sheet_size, trk_memory, search_range, trk_algo]
+
+    with open('Default_values.pickle', 'wb') as f:
+        pickle.dump(Default_values, f)
 
     # Gui to help user find best thresholding value for videos
     # (Picks a random chosen video to use)
 
     # For larger sample sizes more videos will be tested
     # Always at least 1 video, and capped at 5 if 200+ videos are being analyzed
-    multiples_of_50 = len(filepath) // 50
-    if multiples_of_50 == 1:
-        num_files_for_threshold = 2
-    elif multiples_of_50 == 2:
-        num_files_for_threshold = 3
-    elif multiples_of_50 == 3:
-        num_files_for_threshold = 4
-    elif multiples_of_50 >= 4:
-        num_files_for_threshold = 5
-    else:
-        num_files_for_threshold = 1
 
-    try:
-        rand_file_num = random.sample(
-            range(0, len(filepath)), num_files_for_threshold)
-        thresh_values = []
-    except:
-        print('Please re-run program, and make sure to select files!')
-        exit()
+    def threshold_value_testing(List_of_Filepaths):
+        multiples_of_50 = len(List_of_Filepaths) // 50
+        if multiples_of_50 == 1:
+            num_files_for_threshold = 2
+        elif multiples_of_50 == 2:
+            num_files_for_threshold = 3
+        elif multiples_of_50 == 3:
+            num_files_for_threshold = 4
+        elif multiples_of_50 >= 4:
+            num_files_for_threshold = 5
+        else:
+            num_files_for_threshold = 1
 
-    # running the thresholding picker gui
-    for i in range(0, len(rand_file_num)):
+        try:
+            rand_file_num = random.sample(
+                range(0, len(List_of_Filepaths)), num_files_for_threshold)
+            thresh_values = []
+        except:
+            print('Please re-run program, and make sure to select files!')
+            exit()
 
-        def close():
-            window.destroy()
-            cv2.destroyAllWindows()
+        # running the thresholding picker gui
+        for i in range(0, len(rand_file_num)):
 
-        def double_check(values):
+            def close():
+                window.destroy()
+                cv2.destroyAllWindows()
 
-            threshold_value = value.get()
+            # the arg values being passed to the function is meant to not be used (I promise im not dumb)
+            def double_check(values):
 
-            blur = cv2.medianBlur(checking_images[0], 5)
+                threshold_value = value.get()
 
-            ret, thresholded_checked = cv2.threshold(
-                blur, threshold_value, 255, cv2.THRESH_BINARY_INV)
+                blur = cv2.medianBlur(checking_images[0], 5)
 
-            cv2.imshow('Thresholded Image', thresholded_checked)
-            cv2.imshow('Original Image', checking_images[0])
-            cv2.waitKey(5)
+                ret, thresholded_checked = cv2.threshold(
+                    blur, threshold_value, 255, cv2.THRESH_BINARY_INV)
 
-        window = tk.Tk()
-        window.title('Checking Thresholding Value')
-        window.resizable(False, False)
-        window.geometry('400x250')
+                cv2.imshow('Thresholded Image', thresholded_checked)
+                cv2.imshow('Original Image', checking_images[0])
+                cv2.waitKey(5)
 
-        thresh_check_frame = ttk.Frame(window, padding='5 5 10 10')
-        thresh_check_frame.grid(column=0, row=0)
-        window.columnconfigure(0, weight=1)
-        window.rowconfigure(0, weight=1)
+            window = tk.Tk()
+            window.title('Checking Thresholding Value')
+            window.resizable(False, False)
+            window.geometry('400x250')
 
-        checking_images = []
+            thresh_check_frame = ttk.Frame(window, padding='5 5 10 10')
+            thresh_check_frame.grid(column=0, row=0)
+            window.columnconfigure(0, weight=1)
+            window.rowconfigure(0, weight=1)
 
-        loaded, checking_images = cv2.imreadmulti(
-            mats=checking_images, filename=filepath[rand_file_num[i]], flags=cv2.IMREAD_GRAYSCALE)
+            checking_images = []
 
-        # Here 100 is just a default value for the thresholding
-        value = tk.IntVar(thresh_check_frame, 100)
+            loaded, checking_images = cv2.imreadmulti(
+                mats=checking_images, filename=List_of_Filepaths[rand_file_num[i]], flags=cv2.IMREAD_GRAYSCALE)
 
-        # Widgets! I chose not to show threshold value to eliminate human bias
-        # So you can't say "eh i'll just go to threshold value N everytime"
+            # Here 100 is just a default starting point for the thresholding value
+            value = tk.IntVar(thresh_check_frame, 100)
 
-        slider = ttk.Scale(thresh_check_frame, from_=0, to=255, orient='horizontal',
-                           variable=value, command=double_check, length=200).grid(column=0, row=1)
+            # Widgets! I chose not to show threshold value to eliminate human bias
+            # So you can't say "eh i'll just go to threshold value N everytime"
+            slider = ttk.Scale(thresh_check_frame, from_=0, to=255, orient='horizontal',
+                               variable=value, command=double_check, length=200).grid(column=0, row=1)
 
-        cont_but = ttk.Button(thresh_check_frame, text='Continue', command=close).grid(
-            column=1, row=1, padx=10, pady=5)
+            cont_but = ttk.Button(thresh_check_frame, text='Continue', command=close).grid(
+                column=1, row=1, padx=10, pady=5)
 
-        old_thresh_label = ttk.Label(thresh_check_frame, text='Determining Thresholding Value:',
-                                     font=('Arial', 12)).grid(column=0, row=0, padx=20, pady=10)
+            old_thresh_label = ttk.Label(thresh_check_frame, text='Select best thresholding value:',
+                                         font=12).grid(column=0, row=0, padx=20, pady=10)
 
-        double_check(0)
-        thresh_check_frame.mainloop()
-        thresh_values.append(value.get())
+            double_check(0)
+            thresh_check_frame.mainloop()
+            thresh_values.append(value.get())
 
-    # setting the thresholding value to be used when thresholding
-    threshold_value = int(mean(thresh_values))
+        # setting the thresholding value to be used when thresholding
+        threshold_value = int(mean(thresh_values))
+        return threshold_value
+
+    threshold_value = threshold_value_testing(filepath)
 
     # Progress bar design
     list_len = len(filepath)
@@ -333,12 +473,12 @@ if __name__ == '__main__':
             frames = tif.imread(f'{split_list[j][i]}')
 
             # tracking the objects
-            f = tp.batch(frames[:], 25, invert=True,
+            f = tp.batch(frames[:], object_diameter, invert=True,
                          engine='numba', processes='auto')
 
-            t = tp.link_df(f, 35, memory=5)
+            t = tp.link_df(f, search_range, memory=trk_memory)
 
-            squared_motion = tp.motion.imsd(t, 0.139, 5)
+            squared_motion = tp.motion.imsd(t, pixel_size, fps)
 
             filename = os.path.basename(split_list[j][i])
 
