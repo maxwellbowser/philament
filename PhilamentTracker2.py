@@ -306,7 +306,12 @@ if __name__ == '__main__':
         threshold_value = int(mean(thresh_values))
         return threshold_value
 
-    threshold_value = threshold_value_testing(filepath)
+    try:
+        threshold_value = threshold_value_testing(filepath)
+    except:
+        showinfo(title='Program Closed',
+                 message='Goodbye, have a good day! :)')
+        exit()
 
     # Progress bar design
     list_len = len(filepath)
