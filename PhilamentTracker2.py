@@ -70,7 +70,6 @@ if __name__ == '__main__':
     try:
         with open('Default_values.pickle', 'rb') as f:
             past_values = pickle.load(f)
-
         pixel_size = past_values[0]
         object_diameter = past_values[1]
         full_flmt_data = past_values[2]
@@ -343,7 +342,7 @@ if __name__ == '__main__':
     prgbr_total = ttk.Label(frame, textvariable=items).grid(
         column=2, row=0, padx=1, pady=3)
 
-    # Start of the actual program, and the thresholding and saving of files
+    # Start of the data analysis, the thresholding and saving of files
     try:
 
         for i in range(0, len(filepath)):
@@ -414,10 +413,10 @@ if __name__ == '__main__':
     split_list = []
     flmnt_data = pd.DataFrame()
     msd_data = pd.DataFrame()
-    # df2 = pd.DataFrame()
 
-    # column_one = []
-    column_two = []
+    full_flmt_list = []
+    msd_list = []
+    obj_length_list = []
 
     # This allows for saving multiple sheets to the same excel file w/o overwriting
     book = op.Workbook()
@@ -426,6 +425,15 @@ if __name__ == '__main__':
     writer = pd.ExcelWriter(
         f'Analyzed_Data-{todays_date}.xlsx', engine='openpyxl')
     writer.book = book
+
+    # For full filament data option
+    if full_flmt_data == True:
+        book1 = op.Workbook()
+        book1.remove(book1.active)
+        todays_date = date.today()
+        writer1 = pd.ExcelWriter(
+            f'Full Filament Data-{todays_date}.xlsx', engine='openpyxl')
+        writer1.book1 = book1
 
     for x in os.listdir():
         if x.endswith('.tif'):
@@ -480,53 +488,59 @@ if __name__ == '__main__':
             # tracking the objects
             f = tp.batch(frames[:], object_diameter, invert=True,
                          engine='numba', processes='auto')
+            # Linking the objects/ drawing their paths
+            linked_obj = tp.link_df(f, search_range, memory=trk_memory)
+            squared_motion = tp.motion.imsd(linked_obj, pixel_size, fps)
 
-            t = tp.link_df(f, search_range, memory=trk_memory)
-
-            squared_motion = tp.motion.imsd(t, pixel_size, fps)
-
+            # Specifing which movie the data came from
             filename = os.path.basename(split_list[j][i])
-
-            # to specify which movie the data came from
             file_num = int(filename[-6:-4])
-            # The comments below are to insert the columns for x, y, particle,
-            # ect...
 
-            # desired_values = t[['frame', 'particle',
-            #                    'x', 'y', 'mass', 'size']]
+            # Full filament data option
+            if full_flmt_data == True:
+                df2 = linked_obj.sort_values(by=['particle', 'frame'])
+                df2.insert(0, "File", file_num, allow_duplicates=True)
+                full_flmt_list.append(df2)
 
-            # df2 = desired_values.sort_values(by=['particle', 'frame'])
+            # This section is finding the # of pixels that are in each of the object (object size)
+            desired_values = linked_obj[['frame', 'particle', 'mass']]
+            total_obj = desired_values['particle'].iloc[-1]
+            sorted_df = desired_values.sort_values(by=['particle', 'frame'])
 
-            # df2.insert(0, "File", file_num, allow_duplicates=True)
-            # puts in an empty column
-            # df2[''] = ''
+            for i in range(0, int(total_obj)):
+                mass_df = sorted_df[sorted_df['particle'] == i]
+                avg_mass = (mass_df['mass'].mean().round(2))/255
+                stdev_mass = (mass_df['mass'].std().round(2))/255
+                hello = [avg_mass, stdev_mass]
+                obj_length_list.append(hello)
+
+            flmt_df = pd.DataFrame(obj_length_list, columns=[
+                'Average Obj Size', 'Std of Obj Size'])
 
             transposed_msd = squared_motion.transpose()
+            concat_df = pd.concat([flmt_df, transposed_msd], axis=1)
 
-            transposed_msd.insert(
+            concat_df.insert(
                 0, "File", file_num, allow_duplicates=True)
 
-            # column_one.append(df2)
-
-            column_two.append(transposed_msd)
-
-            #paths = tp.plot_traj(t, mpp=0.139, label=True, block=False)
-            # paths.figure.savefig(f'{file_num}.png')
-
-        # flmnt_data = pd.concat(column_one)
-        msd_data = pd.concat(column_two)
-        # file_data = pd.concat(column_one)
+            msd_list.append(concat_df)
 
         filename = os.path.basename(split_list[j][0])
-
         proper_name = filename[7:-7]
 
+        msd_data = pd.concat(msd_list)
         msd_data.to_excel(writer, sheet_name=proper_name)
-        # file_data.to_excel(writer, sheet_name=proper_name)
 
         msd_data = []
-        column_two = []
+        msd_list = []
         writer.save()
+
+        if full_flmt_data == True:
+            flmnt_data = pd.concat(full_flmt_list)
+            flmnt_data.to_excel(writer1, sheet_name=proper_name)
+            flmnt_data = []
+            full_flmt_list = []
+            writer1.save()
 
     showinfo(title="Finished",
              message=f"All Files Tracked and Saved")
