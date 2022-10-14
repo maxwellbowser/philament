@@ -15,10 +15,15 @@ def cute_messages_for_alyssa(i):
             """
 
     Salutation = """   
-    I hope you have an amazing day! ʕ•ᴥ•ʔﾉ♡
+    I hope you have an amazing weekend, there's so much fun stuff in the world, go enjoy it! ʕ•ᴥ•ʔﾉ♡
 
     -Chico & Ryan :)  
 
+    p.s.
+    Hi Alyssa, I had an amazing week with you, thank you for being such a great girlfriend
+
+    Hugs & Kisses,
+    Ryan
     """
     message = Greeting + Body + Salutation
     yag.send(to=EmailList[i][0], subject=f'Chico\'s Check-In {MonthDay}',
@@ -31,7 +36,7 @@ MonthDay = str(todaysDate)[5:]
 
 
 # I'm putting all the things that will change email to email up here for easy access
-Weekly_picture = 'Chico picture 9-04.jpeg'
+Weekly_picture = 'Ella_pic 10-13.jpeg'
 WeeklyLink = 'https://www.tiktok.com/@ripkenthebatdog/video/7127058382502120747?is_from_webapp=1&sender_device=pc&web_id=7148631246494500394'
 
 # I like to call this the Rick-Roll Randomizer
@@ -79,7 +84,7 @@ if int(Weather_info[3]) >= 90:
 elif int(Weather_info[3]) < 90 and int(Weather_info[3]) >= 70:
     remark = 'If you ask me, that\'s great dog walking weather!'
 elif int(Weather_info[3]) < 70 and int(Weather_info[3]) >= 40:
-    remark = 'Mmmm I hope chilly weather is coming soon!'
+    remark = 'Man I hope chilly weather is coming soon!'
 else:
     remark = 'Man thats chilly! I hope Ryan puts some hot cocoa in my bowl!'
 
@@ -95,27 +100,30 @@ elif int(current_time[:2]) >= 17:
 
 # Eventually add a way to randomize endings!
 random_ending = ['Hope your day is as wonderful as you are!', 'Sending lots of love, I hope you\'re feeling it!', 'You got this!',
-                 'Good luck with the rest of the week, I know you\'re gonna do great!']
+                 'Good luck with the rest of the week, I know you\'re gonna do great!', 'I hope you have an amazing day, there\'s so much fun stuff in the world, go enjoy it!']
 
 
 Body = f''' 
 
-    I hope your week is going well so far, there's only a few more days until friday!🎉🎉
+    Happy Friday🎉🎉! I hope your week has been going well, I'm excited for the weekend!
 
-    This week, I learned about baseball! I can't believe that the players hit the ball away from themselves. Here I thought we were on the same page, you're supposed to CHASE THE BALL!! 
+    Ryan's been using the computer to do dumb homework all week, so i haven't been able to write you an email! Thankfully, I had plenty of time to cruise instagram and MAN do I have some cute news.
     
-    I also found a dog who cares more about bats than the ball, it's okay though, he's still a<a href={WeeklyLink}> good boy.</a> 
+    Since 2014, the National Park Service (NPS) has been holding a competition known as Fat Bear Week. In the months before winter, brown bears all around Alaska start fattening up to prepare for hibernation. The NPS chooses of the fattest bears, and people vote on their favorites, march madness style!
 
-    For today's weather... in {Weather_info[0]}, it's gonna be {Weather_info[3]} degrees and {Weather_info[2].lower()} outside! {remark}
-
-    Finally, here's a fun dog fact for you: Making purposeful eye contact with your dog causes an oxytocin release loop similar to when a mother and her baby bond. Isn't that so cute? <3
+    This years winner was bear #747, who was given the nickname '<a href=https://www.instagram.com/p/CjmDqqbjTqG/>Bear Force One</a>'. This big boy weighs over 1,400 pounds and is just so SO chonky. I'm already excited for next years competition, and if you wanna learn more about this, <a href=https://explore.org/fat-bear-week>click here!</a>
+    
+    For today's weather, in {Weather_info[0]}, it's gonna be {Weather_info[3]} degrees and {Weather_info[2].lower()} outside! {remark}
+    
+    I've also attached a cute picture of my big sister Ella! Sometimes she hogs her toys or tries to eat my treats, but she's still a good girl.
     '''
 
 
 Salutation = """   
-I hope your day is as wonderful as you are!
+I hope you have an amazing weekend, there's so much fun stuff in the world, go enjoy it!
 
 -Chico :)
+
 
 
 p.s.
@@ -126,7 +134,7 @@ Thanks,
 """
 
 
-everyone = True
+everyone = False
 
 chico_password = keyring.get_password('panch', 'chico')
 yag = yagmail.SMTP(user='mr.secretarychico@gmail.com', password=chico_password)
