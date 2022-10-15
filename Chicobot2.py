@@ -15,7 +15,7 @@ def cute_messages_for_alyssa(i):
             """
 
     Salutation = """   
-    I hope you have an amazing weekend, there's so much fun stuff in the world, go enjoy it! ʕ•ᴥ•ʔﾉ♡
+    I hope you have an amazing weekend, there's so much fun stuff out there, go enjoy it! ʕ•ᴥ•ʔﾉ♡
 
     -Chico & Ryan :)  
 
@@ -81,10 +81,10 @@ Weather_info = weather(city)
 # Determining remark based on the temperature returned from the weather function
 if int(Weather_info[3]) >= 90:
     remark = 'Wow thats hot, make sure you stay cool!'
-elif int(Weather_info[3]) < 90 and int(Weather_info[3]) >= 70:
+elif int(Weather_info[3]) < 90 and int(Weather_info[3]) >= 65:
     remark = 'If you ask me, that\'s great dog walking weather!'
-elif int(Weather_info[3]) < 70 and int(Weather_info[3]) >= 40:
-    remark = 'Man I hope chilly weather is coming soon!'
+elif int(Weather_info[3]) < 65 and int(Weather_info[3]) >= 35:
+    remark = 'That sounds like great spooky season weather to me!'
 else:
     remark = 'Man thats chilly! I hope Ryan puts some hot cocoa in my bowl!'
 
@@ -109,32 +109,32 @@ Body = f'''
 
     Ryan's been using the computer to do dumb homework all week, so i haven't been able to write you an email! Thankfully, I had plenty of time to cruise instagram and MAN do I have some cute news.
     
-    Since 2014, the National Park Service (NPS) has been holding a competition known as Fat Bear Week. In the months before winter, brown bears all around Alaska start fattening up to prepare for hibernation. The NPS chooses of the fattest bears, and people vote on their favorites, march madness style!
+    Since 2014, the National Park Service (NPS) has been holding a competition known as Fat Bear Week. In the months before winter, brown bears all around Alaska start fattening up to prepare for hibernation. The NPS chooses 8 of the fattest bears and people vote on their favorites, with a march madness style bracket!
 
-    This years winner was bear #747, who was given the nickname '<a href=https://www.instagram.com/p/CjmDqqbjTqG/>Bear Force One</a>'. This big boy weighs over 1,400 pounds and is just so SO chonky. I'm already excited for next years competition, and if you wanna learn more about this, <a href=https://explore.org/fat-bear-week>click here!</a>
+    This year's winner was bear #747, who was given the nickname "<a href=https://www.instagram.com/p/CjmDqqbjTqG/>Bear Force One</a>". This big boy weighs over 1,400 pounds and is just so SO chonky. I'm already excited for next years competition, and if you wanna learn more about it, <a href=https://explore.org/fat-bear-week>click here!</a>
     
-    For today's weather, in {Weather_info[0]}, it's gonna be {Weather_info[3]} degrees and {Weather_info[2].lower()} outside! {remark}
+    For today's weather, in {Weather_info[0]} it's gonna be {Weather_info[3]} degrees and {Weather_info[2].lower()} outside! {remark}
     
     I've also attached a cute picture of my big sister Ella! Sometimes she hogs her toys or tries to eat my treats, but she's still a good girl.
     '''
 
 
 Salutation = """   
-I hope you have an amazing weekend, there's so much fun stuff in the world, go enjoy it!
+I hope you have an amazing weekend, there's so much fun stuff out there, go enjoy it!
 
 -Chico :)
 
 
 
 p.s.
-Just as a little explanation for this email, incase someone signed you up. These will be cute weekly / twice-a-week emails from my dog Chico! If you would like to be removed from this list, just send an email back saying cancel or please stop. Otherwise, I hope you enjoy these emails as much as I do!
+Just as a little explanation for this email, incase someone signed you up. These will be cute weekly emails from my dog Chico! If you would like to be removed from this list, just send an email back saying cancel or please stop. Otherwise, I hope you enjoy these emails as much as I do!
 
 Thanks,
 -Ryan
 """
 
 
-everyone = False
+everyone = True
 
 chico_password = keyring.get_password('panch', 'chico')
 yag = yagmail.SMTP(user='mr.secretarychico@gmail.com', password=chico_password)

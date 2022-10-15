@@ -10,6 +10,8 @@ from tkinter import filedialog as fd
 from tkinter import ttk
 from tkinter.messagebox import showinfo
 import os
+import os.path
+from turtle import settiltangle
 
 import cv2
 
@@ -41,7 +43,7 @@ if __name__ == '__main__':
 
     global pixel_size
     global object_diameter
-    global full_flmt_data
+    global full_obj_data
     global sheet_size
     global trk_memory
     global search_range
@@ -67,22 +69,23 @@ if __name__ == '__main__':
 
     # This try-except loop will check if the default values have already been made
     # If not, it sets them to my preset values and then saves a default_value file
-    try:
+    settings_test = os.path.exists('Default_values.pickle')
+    if settings_test == True:
         with open('Default_values.pickle', 'rb') as f:
             past_values = pickle.load(f)
         pixel_size = past_values[0]
         object_diameter = past_values[1]
-        full_flmt_data = past_values[2]
+        full_obj_data = past_values[2]
         sheet_size = past_values[3]
         trk_memory = past_values[4]
         search_range = past_values[5]
         trk_algo = past_values[6]
         fps = past_values[7]
 
-    except:
+    else:
         pixel_size = 0.139
         object_diameter = 25
-        full_flmt_data = False
+        full_obj_data = False
         sheet_size = 10
         trk_memory = 5
         search_range = 35
@@ -90,7 +93,7 @@ if __name__ == '__main__':
         fps = 5
 
         # This is the order that the values are saved
-        Default_values = [pixel_size, object_diameter, full_flmt_data,
+        Default_values = [pixel_size, object_diameter, full_obj_data,
                           sheet_size, trk_memory, search_range, trk_algo, fps]
 
         with open('Default_values.pickle', 'wb') as f:
@@ -114,7 +117,7 @@ if __name__ == '__main__':
     options_frame.grid(column=1, row=0)
 
     # Variables being made
-    tk_full_flmt_data = tk.BooleanVar(value=full_flmt_data)
+    tk_full_obj_data = tk.BooleanVar(value=full_obj_data)
     tk_pixel_size = tk.DoubleVar(value=pixel_size)
     tk_object_diameter = tk.IntVar(value=object_diameter)
     tk_sheet_size = tk.IntVar(value=sheet_size)
@@ -139,8 +142,8 @@ if __name__ == '__main__':
         column=0, row=6, padx=5, pady=5, sticky='W')
 
     # Entries being made
-    full_flmt_data = ttk.Checkbutton(options_frame, text="Include full object data? \n(Warning: Large files)",
-                                     variable=full_flmt_data, onvalue=True, offvalue=False).grid(
+    ttk.Checkbutton(options_frame, text="Include full object data? \n(Warning: Large files)",
+                                        variable=tk_full_obj_data, onvalue=True, offvalue=False).grid(
         column=0, row=0, padx=10, pady=5, sticky='N')
 
     ttk.Entry(values_frame, textvariable=tk_pixel_size).grid(
@@ -168,9 +171,9 @@ if __name__ == '__main__':
 
     def close_window():
         root.destroy()
-        # exit()
+        exit()
 
-    # Making RadioButtons (would've made with for loop to save space, but it caused problems, and this is more readable anyways)
+    # Making RadioButtons (would've made with a for loop to save space, but it caused problems, and this is more readable anyways)
     file.add_radiobutton(
         label='Numba',
         command=lambda: set_value('numba'))
@@ -205,7 +208,7 @@ if __name__ == '__main__':
     try:
         pixel_size = tk_pixel_size.get()
         object_diameter = tk_object_diameter.get()
-        full_flmt_data = tk_full_flmt_data.get()
+        full_obj_data = tk_full_obj_data.get()
         sheet_size = tk_sheet_size.get()
         trk_memory = tk_trk_memory.get()
         search_range = tk_search_range.get()
@@ -214,9 +217,8 @@ if __name__ == '__main__':
         showinfo(title='Whoops!',
                  message='Error: Invalid Input\nPlease restart program')
         exit()
-    Default_values = [pixel_size, object_diameter, full_flmt_data,
-                      sheet_size, trk_memory, search_range, trk_algo]
-
+    Default_values = [pixel_size, object_diameter, full_obj_data,
+                      sheet_size, trk_memory, search_range, trk_algo, fps]
     with open('Default_values.pickle', 'wb') as f:
         pickle.dump(Default_values, f)
 
@@ -400,25 +402,24 @@ if __name__ == '__main__':
             message=f"Sorry, Something happened")
         pass
 
-    # By finding all filepaths that end in .tif in the working directory (where the thresholded videos are saved)
-    # This function is able to automatically find the filepaths for the newly thresholded videos
-
     # Some things are commented out, because I'm not using those data but i want to be able to enable it
     # for other people eventually
 
     tp.quiet()
 
-    # Defining Variables
+    # Defining Variables (msd stands for mean squared displacement)
     thresholded_tifs = []
     split_list = []
-    flmnt_data = pd.DataFrame()
+    obj_data = pd.DataFrame()
     msd_data = pd.DataFrame()
+    obj_size_df2 = pd.DataFrame()
+    msd_df = pd.DataFrame()
+    full_obj_df = pd.DataFrame()
 
-    full_flmt_list = []
-    msd_list = []
-    obj_length_list = []
+    full_obj_list = []
+    obj_size_list = []
 
-    # This allows for saving multiple sheets to the same excel file w/o overwriting
+    # This allows for saving multiple sheets to the same excel file
     book = op.Workbook()
     book.remove(book.active)
     todays_date = date.today()
@@ -426,20 +427,22 @@ if __name__ == '__main__':
         f'Analyzed_Data-{todays_date}.xlsx', engine='openpyxl')
     writer.book = book
 
-    # For full filament data option
-    if full_flmt_data == True:
+    # For full object data option
+    if full_obj_data == True:
         book1 = op.Workbook()
         book1.remove(book1.active)
         todays_date = date.today()
         writer1 = pd.ExcelWriter(
-            f'Full Filament Data-{todays_date}.xlsx', engine='openpyxl')
+            f'Full Object Data-{todays_date}.xlsx', engine='openpyxl')
         writer1.book1 = book1
 
+    # By finding all filepaths that end in .tif in the working directory (where the thresholded videos are saved)
+    # This function is able to automatically find the filepaths for the newly thresholded videos
     for x in os.listdir():
         if x.endswith('.tif'):
             thresholded_tifs.append(x)
 
-    # Breaking the list into nested lists, that will separate different samples
+    # Breaking the list into nested lists, to separate sample condition data into different sheets
     split_list = [thresholded_tifs[i:i + sheet_size]
                   for i in range(0, len(thresholded_tifs), sheet_size)]
 
@@ -474,7 +477,7 @@ if __name__ == '__main__':
         column=2, row=0, padx=1, pady=3)
 
 
-# Tracking the filaments & saving to excel sheet (does n .tif videos at a time, specified by sheet_size)
+# Tracking the objects & saving to excel sheet (does n .tif videos at a time, specified by sheet_size)
 
     for j in range(0, len(split_list)):
 
@@ -485,61 +488,76 @@ if __name__ == '__main__':
 
             frames = tif.imread(f'{split_list[j][i]}')
 
-            # tracking the objects
+            # tracking the objects & collecting obj information like position, size, brightness, ect.
             f = tp.batch(frames[:], object_diameter, invert=True,
-                         engine='numba', processes='auto')
-            # Linking the objects/ drawing their paths
+                         engine=trk_algo, processes='auto')
+
+            # Linking the objects / tracking their paths
             linked_obj = tp.link_df(f, search_range, memory=trk_memory)
             squared_motion = tp.motion.imsd(linked_obj, pixel_size, fps)
+
+            transposed_msd = squared_motion.transpose()
+            msd_df = pd.concat([msd_df, transposed_msd])
+            msd_df = msd_df.reset_index(drop=True)
 
             # Specifing which movie the data came from
             filename = os.path.basename(split_list[j][i])
             file_num = int(filename[-6:-4])
 
-            # Full filament data option
-            if full_flmt_data == True:
+            # Full object data option, all variables are saved, (object x and y for each frame, lots of data!)
+            if full_obj_data == True:
                 df2 = linked_obj.sort_values(by=['particle', 'frame'])
                 df2.insert(0, "File", file_num, allow_duplicates=True)
-                full_flmt_list.append(df2)
+                full_obj_df = pd.concat([full_obj_df, df2])
 
             # This section is finding the # of pixels that are in each of the object (object size)
             desired_values = linked_obj[['frame', 'particle', 'mass']]
-            total_obj = desired_values['particle'].iloc[-1]
-            sorted_df = desired_values.sort_values(by=['particle', 'frame'])
+            desired_values = desired_values.sort_values(
+                by=['particle', 'frame'])
+            total_objs = desired_values['particle'].iloc[-1]
 
-            for i in range(0, int(total_obj)):
-                mass_df = sorted_df[sorted_df['particle'] == i]
-                avg_mass = (mass_df['mass'].mean().round(2))/255
-                stdev_mass = (mass_df['mass'].std().round(2))/255
-                hello = [avg_mass, stdev_mass]
-                obj_length_list.append(hello)
+            # loop to calculate mean and std for the particle size * brightness, which is converted into pixels by x/255
+            for i in range(0, int(total_objs)):
 
-            flmt_df = pd.DataFrame(obj_length_list, columns=[
+                mass_df = desired_values[desired_values['particle'] == i]
+
+                # If just one data point is available, then theres no point to tracking it, so the object is skipped
+                if len(mass_df) != 1:
+                    avg_mass = (mass_df['mass'].mean())/255
+                    mass_std = (mass_df['mass'].std())/255
+
+                    # Adding the mean and stdev of the object size to list
+                    temp_list = [avg_mass, mass_std]
+                    obj_size_list.append(temp_list)
+
+                else:
+                    pass
+
+            # Adding file numbers, which i do by converting obj_size list to df, adding the file numbers, and convert back to df (theres probably a better way)
+            obj_size_df = pd.DataFrame(obj_size_list, columns=[
                 'Average Obj Size', 'Std of Obj Size'])
-
-            transposed_msd = squared_motion.transpose()
-            concat_df = pd.concat([flmt_df, transposed_msd], axis=1)
-
-            concat_df.insert(
+            temp_df = obj_size_df.insert(
                 0, "File", file_num, allow_duplicates=True)
 
-            msd_list.append(concat_df)
+            obj_size_df2 = pd.concat(
+                [obj_size_df2, obj_size_df])
 
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7:-7]
 
-        msd_data = pd.concat(msd_list)
-        msd_data.to_excel(writer, sheet_name=proper_name)
+        concat_df = pd.concat([obj_size_df2, msd_df],
+                              axis=1)
+        concat_df.to_excel(writer, sheet_name=proper_name)
 
-        msd_data = []
-        msd_list = []
+        # These lines are to print the object and msd data separately (used while making the concat_df)
+        # obj_size_df2.to_excel('object data.xlsx')
+        # msd_df.to_excel('msd data.xlsx')
+
+        obj_size_list = []
         writer.save()
 
-        if full_flmt_data == True:
-            flmnt_data = pd.concat(full_flmt_list)
-            flmnt_data.to_excel(writer1, sheet_name=proper_name)
-            flmnt_data = []
-            full_flmt_list = []
+        if full_obj_data == True:
+            full_obj_df.to_excel(writer1, sheet_name=proper_name)
             writer1.save()
 
     showinfo(title="Finished",
