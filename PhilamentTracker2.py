@@ -39,7 +39,7 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()
 
     # All this is for the starting GUI (I'm guessing I could make it smaller/more efficient)
-    # If you're reading this and have advice plz let me know!
+    # If you're reading this and have any advice plz let me know!
 
     global pixel_size
     global object_diameter
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     global search_range
     global trk_algo
 
-    # Function for browse window
+    # Function for opening browse window selecting files
     def select_files():
 
         filetypes = (
@@ -70,6 +70,7 @@ if __name__ == '__main__':
     # This try-except loop will check if the default values have already been made
     # If not, it sets them to my preset values and then saves a default_value file
     settings_test = os.path.exists('Default_values.pickle')
+
     if settings_test == True:
         with open('Default_values.pickle', 'rb') as f:
             past_values = pickle.load(f)
@@ -105,7 +106,7 @@ if __name__ == '__main__':
     root.geometry('550x300')
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
-    # root.resizable(False, False)
+    root.resizable(False, False)
 
     button_frame = ttk.Frame(root,  padding="5 5 10 10")
     button_frame.grid(column=0, row=1)
@@ -141,7 +142,7 @@ if __name__ == '__main__':
     ttk.Label(values_frame, text="Path linking strategy:\n(Numba is recommended)", anchor="w").grid(
         column=0, row=6, padx=5, pady=5, sticky='W')
 
-    # Entries being made
+    # Checkbox / Entries being made
     ttk.Checkbutton(options_frame, text="Include full object data? \n(Warning: Large files)",
                                         variable=tk_full_obj_data, onvalue=True, offvalue=False).grid(
         column=0, row=0, padx=10, pady=5, sticky='N')
@@ -204,7 +205,8 @@ if __name__ == '__main__':
 
     root.mainloop()
 
-    # setting regular variables equal to the tkinter variables
+    # Setting regular variables equal to the tkinter variables
+    # This also updates the default values, so they will be save the next time you run the program
     try:
         pixel_size = tk_pixel_size.get()
         object_diameter = tk_object_diameter.get()
@@ -222,11 +224,9 @@ if __name__ == '__main__':
     with open('Default_values.pickle', 'wb') as f:
         pickle.dump(Default_values, f)
 
-    # Gui to help user find best thresholding value for videos
-    # (Picks a random chosen video to use)
-
+    # Gui to help user find best thresholding value for videos (Picks a random chosen video to use)
     # For larger sample sizes more videos will be tested
-    # Always at least 1 video, and capped at 5 if 200+ videos are being analyzed
+    # Always at least 1 video, and capped at 5 if > 200 videos are being analyzed
 
     def threshold_value_testing(List_of_Filepaths):
         multiples_of_50 = len(List_of_Filepaths) // 50
@@ -288,8 +288,7 @@ if __name__ == '__main__':
             # Here 100 is just a default starting point for the thresholding value
             value = tk.IntVar(thresh_check_frame, 100)
 
-            # Widgets! I chose not to show threshold value to eliminate human bias
-            # So you can't say "eh i'll just go to threshold value N everytime"
+            # Widgets! I chose not to show threshold value to eliminate human bias % simplicity
             slider = ttk.Scale(thresh_check_frame, from_=0, to=255, orient='horizontal',
                                variable=value, command=double_check, length=200).grid(column=0, row=1)
 
@@ -306,7 +305,7 @@ if __name__ == '__main__':
         # setting the thresholding value to be used when thresholding
         threshold_value = int(mean(thresh_values))
         return threshold_value
-
+# If the user closes the window, this handles it & closes the program
     try:
         threshold_value = threshold_value_testing(filepath)
     except:
@@ -314,7 +313,7 @@ if __name__ == '__main__':
                  message='Goodbye, have a good day! :)')
         exit()
 
-    # Progress bar design
+    # Progress bar design (nothing super cool/ interesting)
     list_len = len(filepath)
 
     root = tk.Tk()
@@ -363,20 +362,11 @@ if __name__ == '__main__':
 
                 for x in range(0, len(original_images)):
 
+                    # Image processing (blur & thresholding)
                     blur = cv2.medianBlur(original_images[x], 5)
 
                     ret, image = cv2.threshold(
                         blur, threshold_value, 255, cv2.THRESH_BINARY_INV)
-
-                    '''
-                    If I was using np arrays, i wouldn't be able to append each browse_frame to the
-                    list. This is because when you append matrices to np arrays, they are
-                    appended to a COPY of the array, not the original array. Because I
-                    chose to use a for loop, using np arrays didn't fit or make sense.
-        
-                    (Sorry for the long comment, but I figure its better to have these
-                    in case someone needs to understand what i'm doing)
-                    '''
 
                     threshold_images.append(image)
 
@@ -396,15 +386,14 @@ if __name__ == '__main__':
         frame.mainloop()
         cv2.waitKey()
 
+    # There were a few times I got a random NameError, so added this
     except NameError:
         showinfo(
             title="Error",
             message=f"Sorry, Something happened")
-        pass
+        exit()
 
-    # Some things are commented out, because I'm not using those data but i want to be able to enable it
-    # for other people eventually
-
+    # w/o this, trackpy prints lots of information thats useless as the user, so I silenced it
     tp.quiet()
 
     # Defining Variables (msd stands for mean squared displacement)
@@ -427,7 +416,7 @@ if __name__ == '__main__':
         f'Analyzed_Data-{todays_date}.xlsx', engine='openpyxl')
     writer.book = book
 
-    # For full object data option
+    # For full object data option (multiple excel sheets)
     if full_obj_data == True:
         book1 = op.Workbook()
         book1.remove(book1.active)
@@ -477,7 +466,7 @@ if __name__ == '__main__':
         column=2, row=0, padx=1, pady=3)
 
 
-# Tracking the objects & saving to excel sheet (does n .tif videos at a time, specified by sheet_size)
+# Tracking the objects & saving to excel sheet (does i .tif videos at a time, specified by sheet_size)
 
     for j in range(0, len(split_list)):
 
@@ -504,7 +493,7 @@ if __name__ == '__main__':
             filename = os.path.basename(split_list[j][i])
             file_num = int(filename[-6:-4])
 
-            # Full object data option, all variables are saved, (object x and y for each frame, lots of data!)
+            # Full object data option where all variables are saved (object x and y for each frame & object, lots of data!)
             if full_obj_data == True:
                 df2 = linked_obj.sort_values(by=['particle', 'frame'])
                 df2.insert(0, "File", file_num, allow_duplicates=True)
@@ -532,15 +521,13 @@ if __name__ == '__main__':
 
                 else:
                     pass
-
-            # Adding file numbers, which i do by converting obj_size list to df, adding the file numbers, and convert back to df (theres probably a better way)
+            # Converting the size list to a df & allowing for a loop
             obj_size_df = pd.DataFrame(obj_size_list, columns=[
                 'Average Obj Size', 'Std of Obj Size'])
             temp_df = obj_size_df.insert(
                 0, "File", file_num, allow_duplicates=True)
-
             obj_size_df2 = pd.concat(
-                [obj_size_df2, obj_size_df])
+                [obj_size_df2, temp_df])
 
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7:-7]
@@ -549,7 +536,7 @@ if __name__ == '__main__':
                               axis=1)
         concat_df.to_excel(writer, sheet_name=proper_name)
 
-        # These lines are to print the object and msd data separately (used while making the concat_df)
+        # These 2 lines are to print the object and msd data separately (used while making the concat_df)
         # obj_size_df2.to_excel('object data.xlsx')
         # msd_df.to_excel('msd data.xlsx')
 
