@@ -399,8 +399,6 @@ if __name__ == '__main__':
     # Defining Variables (msd stands for mean squared displacement)
     thresholded_tifs = []
     split_list = []
-    obj_data = pd.DataFrame()
-    msd_data = pd.DataFrame()
     obj_size_df2 = pd.DataFrame()
     msd_df = pd.DataFrame()
     full_obj_df = pd.DataFrame()
@@ -420,7 +418,6 @@ if __name__ == '__main__':
     if full_obj_data == True:
         book1 = op.Workbook()
         book1.remove(book1.active)
-        todays_date = date.today()
         writer1 = pd.ExcelWriter(
             f'Full Object Data-{todays_date}.xlsx', engine='openpyxl')
         writer1.book1 = book1
@@ -487,7 +484,6 @@ if __name__ == '__main__':
 
             transposed_msd = squared_motion.transpose()
             msd_df = pd.concat([msd_df, transposed_msd])
-            msd_df = msd_df.reset_index(drop=True)
 
             # Specifing which movie the data came from
             filename = os.path.basename(split_list[j][i])
@@ -524,23 +520,26 @@ if __name__ == '__main__':
             # Converting the size list to a df & allowing for a loop
             obj_size_df = pd.DataFrame(obj_size_list, columns=[
                 'Average Obj Size', 'Std of Obj Size'])
-            temp_df = obj_size_df.insert(
+            obj_size_df.insert(
                 0, "File", file_num, allow_duplicates=True)
             obj_size_df2 = pd.concat(
-                [obj_size_df2, temp_df])
+                [obj_size_df2, obj_size_df])
 
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7:-7]
 
         concat_df = pd.concat([obj_size_df2, msd_df],
                               axis=1)
+
+        obj_size_list = []
+        obj_size_df2 = pd.DataFrame()
+        msd_df = pd.DataFrame()
+
         concat_df.to_excel(writer, sheet_name=proper_name)
 
         # These 2 lines are to print the object and msd data separately (used while making the concat_df)
         # obj_size_df2.to_excel('object data.xlsx')
         # msd_df.to_excel('msd data.xlsx')
-
-        obj_size_list = []
         writer.save()
 
         if full_obj_data == True:
