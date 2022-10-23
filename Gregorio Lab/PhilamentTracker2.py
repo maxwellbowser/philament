@@ -5,13 +5,14 @@ Created on Aug 9, 2022
 '''
 
 from datetime import date
+from email.message import Message
 import multiprocessing
 from tkinter import filedialog as fd
 from tkinter import ttk
 from tkinter.messagebox import showinfo
+from tkinter import messagebox
 import os
 import os.path
-from turtle import settiltangle
 
 import cv2
 
@@ -23,7 +24,7 @@ import tkinter as tk
 import trackpy as tp
 import random
 from multiprocessing import freeze_support
-from statistics import mean, stdev
+from statistics import mean
 import pickle
 
 # This program is meant to take input of prerecorded .tif videos of bright objects on a dark background
@@ -41,6 +42,15 @@ if __name__ == '__main__':
     # All this is for the starting GUI (I'm guessing I could make it smaller/more efficient)
     # If you're reading this and have any advice plz let me know!
 
+    for x in os.listdir():
+        if x.endswith('.tif'):
+            showinfo(title="Whoops!",
+                     message=f"There are already .tif files present!\nPlease move or delete them"
+                     )
+            folder = os.getcwd()
+            os.startfile(folder)
+            exit()
+
     global pixel_size
     global object_diameter
     global full_obj_data
@@ -50,6 +60,11 @@ if __name__ == '__main__':
     global trk_algo
 
     # Function for opening browse window selecting files
+    def on_closing():
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            root.destroy()
+            exit()
+
     def select_files():
 
         filetypes = (
@@ -203,10 +218,11 @@ if __name__ == '__main__':
         command=close_window
     ).grid(column=0, row=1, padx=1, pady=5)
 
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
 
     # Setting regular variables equal to the tkinter variables
-    # This also updates the default values, so they will be save the next time you run the program
+    # This also updates the default values, so they will be saved the next time you run the program
     try:
         pixel_size = tk_pixel_size.get()
         object_diameter = tk_object_diameter.get()
@@ -226,7 +242,7 @@ if __name__ == '__main__':
 
     # Gui to help user find best thresholding value for videos (Picks a random chosen video to use)
     # For larger sample sizes more videos will be tested
-    # Always at least 1 video, and capped at 5 if > 200 videos are being analyzed
+    # Always at least 1 video, and capped at 5 if n > 200 (n is selected files)
 
     def threshold_value_testing(List_of_Filepaths):
         multiples_of_50 = len(List_of_Filepaths) // 50
@@ -273,7 +289,7 @@ if __name__ == '__main__':
             window = tk.Tk()
             window.title('Checking Thresholding Value')
             window.resizable(False, False)
-            window.geometry('400x250')
+            window.geometry('425x250')
 
             thresh_check_frame = ttk.Frame(window, padding='5 5 10 10')
             thresh_check_frame.grid(column=0, row=0)
@@ -281,6 +297,7 @@ if __name__ == '__main__':
             window.rowconfigure(0, weight=1)
 
             checking_images = []
+            current_num = i+1
 
             loaded, checking_images = cv2.imreadmulti(
                 mats=checking_images, filename=List_of_Filepaths[rand_file_num[i]], flags=cv2.IMREAD_GRAYSCALE)
@@ -289,7 +306,7 @@ if __name__ == '__main__':
             value = tk.IntVar(thresh_check_frame, 100)
 
             # Widgets! I chose not to show threshold value to eliminate human bias % simplicity
-            slider = ttk.Scale(thresh_check_frame, from_=0, to=255, orient='horizontal',
+            slider = ttk.Scale(thresh_check_frame, from_=255, to=0, orient='horizontal',
                                variable=value, command=double_check, length=200).grid(column=0, row=1)
 
             cont_but = ttk.Button(thresh_check_frame, text='Continue', command=close).grid(
@@ -297,6 +314,8 @@ if __name__ == '__main__':
 
             old_thresh_label = ttk.Label(thresh_check_frame, text='Select best thresholding value:',
                                          font=12).grid(column=0, row=0, padx=20, pady=10)
+            ttk.Label(thresh_check_frame, text=f'Image {current_num} out of {num_files_for_threshold}').grid(
+                column=1, row=0, padx=20, pady=10)
 
             double_check(0)
             thresh_check_frame.mainloop()
@@ -305,6 +324,8 @@ if __name__ == '__main__':
         # setting the thresholding value to be used when thresholding
         threshold_value = int(mean(thresh_values))
         return threshold_value
+
+
 # If the user closes the window, this handles it & closes the program
     try:
         threshold_value = threshold_value_testing(filepath)
@@ -382,6 +403,7 @@ if __name__ == '__main__':
                     title="Assertion Error",
                     message=f"Sorry, there was an error with: {filename[i]}\nPhil couldn't determine if it is a file or not.\nPlease try again.")
 
+        root.protocol("WM_DELETE_WINDOW", on_closing)
         root.destroy()
         frame.mainloop()
         cv2.waitKey()
@@ -396,15 +418,8 @@ if __name__ == '__main__':
     # w/o this, trackpy prints lots of information thats useless as the user, so I silenced it
     tp.quiet()
 
-    # Defining Variables (msd stands for mean squared displacement)
     thresholded_tifs = []
     split_list = []
-    obj_size_df2 = pd.DataFrame()
-    msd_df = pd.DataFrame()
-    full_obj_df = pd.DataFrame()
-
-    full_obj_list = []
-    obj_size_list = []
 
     # This allows for saving multiple sheets to the same excel file
     book = op.Workbook()
@@ -467,10 +482,20 @@ if __name__ == '__main__':
 
     for j in range(0, len(split_list)):
 
+        # Defining Variables
+        full_obj_df = pd.DataFrame()
+        final_df = pd.DataFrame()
+
         for i in range(0, len(split_list[j])):
 
             progress.set(progress.get() + 1)
             root.update()
+
+            # Specifing which movie the data came from
+            filename = os.path.basename(split_list[j][i])
+            file_num = int(filename[-6:-4])
+
+            obj_size_list = []
 
             frames = tif.imread(f'{split_list[j][i]}')
 
@@ -478,16 +503,13 @@ if __name__ == '__main__':
             f = tp.batch(frames[:], object_diameter, invert=True,
                          engine=trk_algo, processes='auto')
 
-            # Linking the objects / tracking their paths
+            # Linking the objects / tracking their paths (msd == mean square displacement)
             linked_obj = tp.link_df(f, search_range, memory=trk_memory)
             squared_motion = tp.motion.imsd(linked_obj, pixel_size, fps)
 
-            transposed_msd = squared_motion.transpose()
-            msd_df = pd.concat([msd_df, transposed_msd])
-
-            # Specifing which movie the data came from
-            filename = os.path.basename(split_list[j][i])
-            file_num = int(filename[-6:-4])
+            msd_df = squared_motion.transpose()
+            msd_df.insert(
+                0, "File", file_num, allow_duplicates=True)
 
             # Full object data option where all variables are saved (object x and y for each frame & object, lots of data!)
             if full_obj_data == True:
@@ -502,17 +524,17 @@ if __name__ == '__main__':
             total_objs = desired_values['particle'].iloc[-1]
 
             # loop to calculate mean and std for the particle size * brightness, which is converted into pixels by x/255
-            for i in range(0, int(total_objs)):
+            for object in range(0, int(total_objs)):
 
-                mass_df = desired_values[desired_values['particle'] == i]
+                mass_df = desired_values[desired_values['particle'] == object]
 
                 # If just one data point is available, then theres no point to tracking it, so the object is skipped
-                if len(mass_df) != 1:
+                if len(mass_df) >= 1:
                     avg_mass = (mass_df['mass'].mean())/255
                     mass_std = (mass_df['mass'].std())/255
 
                     # Adding the mean and stdev of the object size to list
-                    temp_list = [avg_mass, mass_std]
+                    temp_list = [avg_mass.round(2), mass_std.round(2)]
                     obj_size_list.append(temp_list)
 
                 else:
@@ -520,31 +542,24 @@ if __name__ == '__main__':
             # Converting the size list to a df & allowing for a loop
             obj_size_df = pd.DataFrame(obj_size_list, columns=[
                 'Average Obj Size', 'Std of Obj Size'])
-            obj_size_df.insert(
-                0, "File", file_num, allow_duplicates=True)
-            obj_size_df2 = pd.concat(
-                [obj_size_df2, obj_size_df])
+
+            output_df = obj_size_df.join(msd_df)
+            output_df.dropna(subset=['Std of Obj Size'], inplace=True)
+            final_df = pd.concat([final_df, output_df])
 
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7:-7]
 
-        concat_df = pd.concat([obj_size_df2, msd_df],
-                              axis=1)
+        final_df.to_excel(writer, sheet_name=proper_name)
 
-        obj_size_list = []
-        obj_size_df2 = pd.DataFrame()
-        msd_df = pd.DataFrame()
-
-        concat_df.to_excel(writer, sheet_name=proper_name)
-
-        # These 2 lines are to print the object and msd data separately (used while making the concat_df)
-        # obj_size_df2.to_excel('object data.xlsx')
-        # msd_df.to_excel('msd data.xlsx')
         writer.save()
 
         if full_obj_data == True:
             full_obj_df.to_excel(writer1, sheet_name=proper_name)
             writer1.save()
+
+# Incase user clicks the red x and wants to shutdown the program.
+    root.protocol("WM_DELETE_WINDOW", on_closing)
 
     showinfo(title="Finished",
              message=f"All Files Tracked and Saved")

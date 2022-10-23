@@ -22,7 +22,7 @@ def cute_messages_for_alyssa(i):
     p.s.
     Hi Alyssa, I had an amazing week with you, thank you for being such a great girlfriend
 
-    Hugs & Kisses,
+
     Ryan
     """
     message = Greeting + Body + Salutation
@@ -100,27 +100,20 @@ elif int(current_time[:2]) >= 17:
 
 # Eventually add a way to randomize endings!
 random_ending = ['Hope your day is as wonderful as you are!', 'Sending lots of love, I hope you\'re feeling it!', 'You got this!',
-                 'Good luck with the rest of the week, I know you\'re gonna do great!', 'I hope you have an amazing day, there\'s so much fun stuff in the world, go enjoy it!']
+                 'Good luck with the rest of the week, I know you\'re gonna do great!', 'I hope you have an amazing day, there\'s so much fun stuff in the world, go enjoy it!',
+                 '']
 
 
 Body = f''' 
 
-    Happy Friday🎉🎉! I hope your week has been going well, I'm excited for the weekend!
 
-    Ryan's been using the computer to do dumb homework all week, so i haven't been able to write you an email! Thankfully, I had plenty of time to cruise instagram and MAN do I have some cute news.
-    
-    Since 2014, the National Park Service (NPS) has been holding a competition known as Fat Bear Week. In the months before winter, brown bears all around Alaska start fattening up to prepare for hibernation. The NPS chooses 8 of the fattest bears and people vote on their favorites, with a march madness style bracket!
 
-    This year's winner was bear #747, who was given the nickname "<a href=https://www.instagram.com/p/CjmDqqbjTqG/>Bear Force One</a>". This big boy weighs over 1,400 pounds and is just so SO chonky. I'm already excited for next years competition, and if you wanna learn more about it, <a href=https://explore.org/fat-bear-week>click here!</a>
-    
-    For today's weather, in {Weather_info[0]} it's gonna be {Weather_info[3]} degrees and {Weather_info[2].lower()} outside! {remark}
-    
-    I've also attached a cute picture of my big sister Ella! Sometimes she hogs her toys or tries to eat my treats, but she's still a good girl.
-    '''
+
+        '''
 
 
 Salutation = """   
-I hope you have an amazing weekend, there's so much fun stuff out there, go enjoy it!
+
 
 -Chico :)
 
