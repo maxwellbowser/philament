@@ -5,7 +5,6 @@ Created on Aug 9, 2022
 '''
 
 from datetime import date
-from email.message import Message
 import multiprocessing
 from tkinter import filedialog as fd
 from tkinter import ttk
@@ -19,6 +18,7 @@ import cv2
 import numpy as np
 import openpyxl as op
 import pandas as pd
+from pandas import ExcelWriter
 import tifffile as tif
 import tkinter as tk
 import trackpy as tp
@@ -39,9 +39,7 @@ if __name__ == '__main__':
     # This line is neccesary for proper running after being compiled with pyinstaller
     multiprocessing.freeze_support()
 
-    # All this is for the starting GUI (I'm guessing I could make it smaller/more efficient)
-    # If you're reading this and have any advice plz let me know!
-
+    # Remove this once adding folder creation
     for x in os.listdir():
         if x.endswith('.tif'):
             showinfo(title="Whoops!",
@@ -50,6 +48,9 @@ if __name__ == '__main__':
             folder = os.getcwd()
             os.startfile(folder)
             exit()
+
+    # All of this is for the starting GUI (I'm guessing I could make it smaller/more efficient)
+    # If you're reading this and have any advice plz let me know!
 
     global pixel_size
     global object_diameter
@@ -82,7 +83,7 @@ if __name__ == '__main__':
 
         root.destroy()
 
-    # This try-except loop will check if the default values have already been made
+    # This will check if the default values have already been made
     # If not, it sets them to my preset values and then saves a default_value file
     settings_test = os.path.exists('Default_values.pickle')
 
@@ -161,7 +162,6 @@ if __name__ == '__main__':
     ttk.Checkbutton(options_frame, text="Include full object data? \n(Warning: Large files)",
                                         variable=tk_full_obj_data, onvalue=True, offvalue=False).grid(
         column=0, row=0, padx=10, pady=5, sticky='N')
-
     ttk.Entry(values_frame, textvariable=tk_pixel_size).grid(
         column=1, row=0, padx=5, pady=5)
     ttk.Entry(values_frame, textvariable=tk_object_diameter).grid(
@@ -415,27 +415,21 @@ if __name__ == '__main__':
             message=f"Sorry, Something happened")
         exit()
 
-    # w/o this, trackpy prints lots of information thats useless as the user, so I silenced it
+    # w/o this, trackpy prints lots of information that's useless for the user, so I silenced it
     tp.quiet()
 
     thresholded_tifs = []
     split_list = []
 
     # This allows for saving multiple sheets to the same excel file
-    book = op.Workbook()
-    book.remove(book.active)
     todays_date = date.today()
     writer = pd.ExcelWriter(
-        f'Analyzed_Data-{todays_date}.xlsx', engine='openpyxl')
-    writer.book = book
+        f'Analyzed_Data-{todays_date}.xlsx')
 
     # For full object data option (multiple excel sheets)
     if full_obj_data == True:
-        book1 = op.Workbook()
-        book1.remove(book1.active)
         writer1 = pd.ExcelWriter(
-            f'Full Object Data-{todays_date}.xlsx', engine='openpyxl')
-        writer1.book1 = book1
+            f'Full Object Data-{todays_date}.xlsx', engine="openpyxl", mode='a')
 
     # By finding all filepaths that end in .tif in the working directory (where the thresholded videos are saved)
     # This function is able to automatically find the filepaths for the newly thresholded videos
@@ -539,7 +533,8 @@ if __name__ == '__main__':
 
                 else:
                     pass
-            # Converting the size list to a df & allowing for a loop
+
+            # Joining
             obj_size_df = pd.DataFrame(obj_size_list, columns=[
                 'Average Obj Size', 'Std of Obj Size'])
 
@@ -547,13 +542,20 @@ if __name__ == '__main__':
             output_df.dropna(subset=['Std of Obj Size'], inplace=True)
             final_df = pd.concat([final_df, output_df])
 
+        # Saving as excel (The automatic naming is based on the naming convention below)
+        # Naming convention: Thresh-XXXXXXXXX-01.tif
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7:-7]
 
-        final_df.to_excel(writer, sheet_name=proper_name)
+        # This is me trying to fix the issue of the excel sheet not saving properly
+        # Honestly Idk what this is going to do, I need to come back to this
+        Dynamic_Variable_Name = 'Sheet'
+        globals()[Dynamic_Variable_Name] = final_df
 
+        Sheet.to_excel(writer, sheet_name=proper_name)
         writer.save()
 
+        # Full object data option
         if full_obj_data == True:
             full_obj_df.to_excel(writer1, sheet_name=proper_name)
             writer1.save()
