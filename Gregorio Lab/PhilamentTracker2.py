@@ -15,7 +15,7 @@ import os.path
 
 import cv2
 
-import numpy as np
+from numpy import array
 import openpyxl as op
 import pandas as pd
 from pandas import ExcelWriter
@@ -39,15 +39,7 @@ if __name__ == '__main__':
     # This line is neccesary for proper running after being compiled with pyinstaller
     multiprocessing.freeze_support()
 
-    # Remove this once adding folder creation
-    for x in os.listdir():
-        if x.endswith('.tif'):
-            showinfo(title="Whoops!",
-                     message=f"There are already .tif files present!\nPlease move or delete them"
-                     )
-            folder = os.getcwd()
-            os.startfile(folder)
-            exit()
+    todays_date = date.today()
 
     # All of this is for the starting GUI (I'm guessing I could make it smaller/more efficient)
     # If you're reading this and have any advice plz let me know!
@@ -119,18 +111,18 @@ if __name__ == '__main__':
     # Setting up root & frames for the starting GUI
     root = tk.Tk()
     root.title('Welcome to Philament Tracker!')
-    root.geometry('550x300')
+    root.geometry('540x375')
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
-    root.resizable(False, False)
 
     button_frame = ttk.Frame(root,  padding="5 5 10 10")
-    button_frame.grid(column=0, row=1)
+    button_frame.grid(column=1, row=1)
 
-    values_frame = ttk.Frame(root,  padding="5 5 10 10", takefocus=True)
+    values_frame = ttk.Frame(root,  padding="5 5 10 10",
+                             takefocus=True)
     values_frame.grid(column=0, row=0)
 
-    options_frame = ttk.Frame(root,  padding="5 5 10 10")
+    options_frame = ttk.Frame(root,  padding="2 2 10 10")
     options_frame.grid(column=1, row=0)
 
     # Variables being made
@@ -141,6 +133,7 @@ if __name__ == '__main__':
     tk_trk_memory = tk.IntVar(value=trk_memory)
     tk_search_range = tk.IntVar(value=search_range)
     tk_fps = tk.IntVar(value=fps)
+    tk_date = tk.StringVar(value=todays_date)
 
     # Labels being made
     ttk.Label(values_frame, text="Pixel size:", anchor="w").grid(
@@ -157,11 +150,15 @@ if __name__ == '__main__':
         column=0, row=5, padx=5, pady=5, sticky='W')
     ttk.Label(values_frame, text="Path linking strategy:\n(Numba is recommended)", anchor="w").grid(
         column=0, row=6, padx=5, pady=5, sticky='W')
+    ttk.Label(options_frame, text="Desired Folder Name:", anchor='n').grid(
+        column=0, row=1, padx=5, pady=5, sticky='N')
 
     # Checkbox / Entries being made
     ttk.Checkbutton(options_frame, text="Include full object data? \n(Warning: Large files)",
                                         variable=tk_full_obj_data, onvalue=True, offvalue=False).grid(
         column=0, row=0, padx=10, pady=5, sticky='N')
+    ttk.Entry(options_frame, width=10, textvariable=tk_date).grid(
+        column=0, row=2, padx=5, pady=5)
     ttk.Entry(values_frame, textvariable=tk_pixel_size).grid(
         column=1, row=0, padx=5, pady=5)
     ttk.Entry(values_frame, textvariable=tk_object_diameter).grid(
@@ -207,16 +204,16 @@ if __name__ == '__main__':
         command=lambda: set_value('auto'))
 
     browse_button = ttk.Button(
-        options_frame,
-        text='Open Files',
+        button_frame,
+        text='Browse',
         command=select_files
-    ).grid(column=1, row=1, padx=1, pady=5)
+    ).grid(column=1, row=0, padx=1, pady=5)
 
     close_button = ttk.Button(
-        options_frame,
+        button_frame,
         text='Cancel',
         command=close_window
-    ).grid(column=0, row=1, padx=1, pady=5)
+    ).grid(column=0, row=0, padx=1, pady=5)
 
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
@@ -231,6 +228,7 @@ if __name__ == '__main__':
         trk_memory = tk_trk_memory.get()
         search_range = tk_search_range.get()
         fps = tk_fps.get()
+        chosen_dir_name = tk_date.get()
     except:
         showinfo(title='Whoops!',
                  message='Error: Invalid Input\nPlease restart program')
@@ -239,6 +237,18 @@ if __name__ == '__main__':
                       sheet_size, trk_memory, search_range, trk_algo, fps]
     with open('Default_values.pickle', 'wb') as f:
         pickle.dump(Default_values, f)
+
+    # Folder creation and changing cwd
+    try:
+        dir_name = str(chosen_dir_name) + ' - Analyzed Files'
+    except FileExistsError:
+        showinfo(
+            "Error", "Folder already exists!\nPlese delete or move the folder and try again.")
+        exit()
+    current_dir = os.getcwd()
+    new_dir = current_dir + "\\" + dir_name
+    os.mkdir(new_dir)
+    os.chdir(new_dir)
 
     # Gui to help user find best thresholding value for videos (Picks a random chosen video to use)
     # For larger sample sizes more videos will be tested
@@ -392,7 +402,7 @@ if __name__ == '__main__':
                     threshold_images.append(image)
 
                     # Saving thresholded tiff images using tifffile
-                    threshold_array = np.array(threshold_images)
+                    threshold_array = array(threshold_images)
                     tif.imwrite("Thresh-" + filename, threshold_array)
 
                     progress.set(i + 1)
@@ -422,14 +432,19 @@ if __name__ == '__main__':
     split_list = []
 
     # This allows for saving multiple sheets to the same excel file
-    todays_date = date.today()
+    book = op.Workbook()
+    book.remove(book.active)
     writer = pd.ExcelWriter(
-        f'Analyzed_Data-{todays_date}.xlsx')
+        f'Analyzed_Data-{todays_date}.xlsx', engine='openpyxl')
+    writer.book = book
 
     # For full object data option (multiple excel sheets)
     if full_obj_data == True:
+        book1 = op.Workbook()
+        book1.remove(book1.active)
         writer1 = pd.ExcelWriter(
-            f'Full Object Data-{todays_date}.xlsx', engine="openpyxl", mode='a')
+            f'Full Object Data-{todays_date}.xlsx', engine='openpyxl')
+        writer1.book1 = book1
 
     # By finding all filepaths that end in .tif in the working directory (where the thresholded videos are saved)
     # This function is able to automatically find the filepaths for the newly thresholded videos
@@ -534,7 +549,7 @@ if __name__ == '__main__':
                 else:
                     pass
 
-            # Joining
+            # Joining dfs
             obj_size_df = pd.DataFrame(obj_size_list, columns=[
                 'Average Obj Size', 'Std of Obj Size'])
 
@@ -549,10 +564,10 @@ if __name__ == '__main__':
 
         # This is me trying to fix the issue of the excel sheet not saving properly
         # Honestly Idk what this is going to do, I need to come back to this
-        Dynamic_Variable_Name = 'Sheet'
-        globals()[Dynamic_Variable_Name] = final_df
+        # Dynamic_Variable_Name = 'Sheet'
+        # globals()[Dynamic_Variable_Name] = final_df
 
-        Sheet.to_excel(writer, sheet_name=proper_name)
+        final_df.to_excel(writer, sheet_name=proper_name)
         writer.save()
 
         # Full object data option
