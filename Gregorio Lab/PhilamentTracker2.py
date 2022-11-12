@@ -12,6 +12,7 @@ from tkinter.messagebox import showinfo
 from tkinter import messagebox
 import os
 import os.path
+import xlsxwriter
 
 import cv2
 
@@ -241,14 +242,15 @@ if __name__ == '__main__':
     # Folder creation and changing cwd
     try:
         dir_name = str(chosen_dir_name) + ' - Analyzed Files'
+        current_dir = os.getcwd()
+        new_dir = current_dir + "\\" + dir_name
+        os.mkdir(new_dir)
+        os.chdir(new_dir)
+
     except FileExistsError:
         showinfo(
             "Error", "Folder already exists!\nPlese delete or move the folder and try again.")
         exit()
-    current_dir = os.getcwd()
-    new_dir = current_dir + "\\" + dir_name
-    os.mkdir(new_dir)
-    os.chdir(new_dir)
 
     # Gui to help user find best thresholding value for videos (Picks a random chosen video to use)
     # For larger sample sizes more videos will be tested
@@ -435,7 +437,7 @@ if __name__ == '__main__':
     book = op.Workbook()
     book.remove(book.active)
     writer = pd.ExcelWriter(
-        f'Analyzed_Data-{todays_date}.xlsx', engine='openpyxl')
+        f'Analyzed_Data-{dir_name}.xlsx', engine='openpyxl')
     writer.book = book
 
     # For full object data option (multiple excel sheets)
@@ -443,7 +445,7 @@ if __name__ == '__main__':
         book1 = op.Workbook()
         book1.remove(book1.active)
         writer1 = pd.ExcelWriter(
-            f'Full Object Data-{todays_date}.xlsx', engine='openpyxl')
+            f'Full Object Data-{dir_name}.xlsx', engine='openpyxl')
         writer1.book1 = book1
 
     # By finding all filepaths that end in .tif in the working directory (where the thresholded videos are saved)

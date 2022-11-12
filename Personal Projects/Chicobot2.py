@@ -15,15 +15,9 @@ def cute_messages_for_alyssa(i):
             """
 
     Salutation = """   
-    I hope you have an amazing weekend, there's so much fun stuff out there, go enjoy it! ʕ•ᴥ•ʔﾉ♡
+    I'm glad I get to spend so much time with you. I love you so much! <3
 
     -Chico & Ryan :)  
-
-    p.s.
-    Hi Alyssa, I had an amazing week with you, thank you for being such a great girlfriend
-
-
-    Ryan
     """
     message = Greeting + Body + Salutation
     yag.send(to=EmailList[i][0], subject=f'Chico\'s Check-In {MonthDay}',
@@ -36,7 +30,7 @@ MonthDay = str(todaysDate)[5:]
 
 
 # I'm putting all the things that will change email to email up here for easy access
-Weekly_picture = 'Ella_pic 10-13.jpeg'
+Weekly_picture = 'Chico 10-31-2022.jpeg'
 WeeklyLink = 'https://www.tiktok.com/@ripkenthebatdog/video/7127058382502120747?is_from_webapp=1&sender_device=pc&web_id=7148631246494500394'
 
 # I like to call this the Rick-Roll Randomizer
@@ -84,7 +78,7 @@ if int(Weather_info[3]) >= 90:
 elif int(Weather_info[3]) < 90 and int(Weather_info[3]) >= 65:
     remark = 'If you ask me, that\'s great dog walking weather!'
 elif int(Weather_info[3]) < 65 and int(Weather_info[3]) >= 35:
-    remark = 'That sounds like great spooky season weather to me!'
+    remark = 'That sounds like great christmas weather to me!'
 else:
     remark = 'Man thats chilly! I hope Ryan puts some hot cocoa in my bowl!'
 
@@ -106,17 +100,17 @@ random_ending = ['Hope your day is as wonderful as you are!', 'Sending lots of l
 
 Body = f''' 
 
+Long time no see, Happy Halloween! I hope your week has been going well, hopefully you're not too spooked out!
 
+This is going to be a shorter email, since Ryan is taking me to hand out candy to the kids in the neighborhood. I'm super excited, I love seeing all the kids in their costumes, and I think I get to eat all the chocolate they don't want!
 
-
+For today's weather, in {Weather_info[0]}, it's gonna be {Weather_info[3]} degrees and {Weather_info[2].lower()} outside! {remark}
         '''
 
 
-Salutation = """   
-
-
+Salutation = f"""   
+Happy trick or treating!
 -Chico :)
-
 
 
 p.s.
