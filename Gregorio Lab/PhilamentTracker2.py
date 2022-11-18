@@ -1,9 +1,3 @@
-'''
-Created on Aug 9, 2022
-
-@author: panch
-'''
-
 from datetime import date
 import multiprocessing
 from tkinter import filedialog as fd
@@ -12,20 +6,23 @@ from tkinter.messagebox import showinfo
 from tkinter import messagebox
 import os
 import os.path
-import xlsxwriter
 
 import cv2
 
 from numpy import array
 import openpyxl as op
+from numba import njit
 import pandas as pd
 from pandas import ExcelWriter
 import tifffile as tif
+from time import time
 import tkinter as tk
-import trackpy as tp
+from trackpy import quiet, batch, link_df
+from trackpy.motion import imsd
 import random
 from multiprocessing import freeze_support
 from statistics import mean
+from math import sqrt
 import pickle
 
 # This program is meant to take input of prerecorded .tif videos of bright objects on a dark background
@@ -46,7 +43,7 @@ if __name__ == '__main__':
     # If you're reading this and have any advice plz let me know!
 
     global pixel_size
-    global object_diameter
+    global object_area
     global full_obj_data
     global sheet_size
     global trk_memory
@@ -84,7 +81,7 @@ if __name__ == '__main__':
         with open('Default_values.pickle', 'rb') as f:
             past_values = pickle.load(f)
         pixel_size = past_values[0]
-        object_diameter = past_values[1]
+        object_area = past_values[1]
         full_obj_data = past_values[2]
         sheet_size = past_values[3]
         trk_memory = past_values[4]
@@ -94,7 +91,7 @@ if __name__ == '__main__':
 
     else:
         pixel_size = 0.139
-        object_diameter = 25
+        object_area = 25
         full_obj_data = False
         sheet_size = 10
         trk_memory = 5
@@ -103,7 +100,7 @@ if __name__ == '__main__':
         fps = 5
 
         # This is the order that the values are saved
-        Default_values = [pixel_size, object_diameter, full_obj_data,
+        Default_values = [pixel_size, object_area, full_obj_data,
                           sheet_size, trk_memory, search_range, trk_algo, fps]
 
         with open('Default_values.pickle', 'wb') as f:
@@ -129,7 +126,7 @@ if __name__ == '__main__':
     # Variables being made
     tk_full_obj_data = tk.BooleanVar(value=full_obj_data)
     tk_pixel_size = tk.DoubleVar(value=pixel_size)
-    tk_object_diameter = tk.IntVar(value=object_diameter)
+    tk_object_area = tk.IntVar(value=object_area)
     tk_sheet_size = tk.IntVar(value=sheet_size)
     tk_trk_memory = tk.IntVar(value=trk_memory)
     tk_search_range = tk.IntVar(value=search_range)
@@ -139,7 +136,7 @@ if __name__ == '__main__':
     # Labels being made
     ttk.Label(values_frame, text="Pixel size:", anchor="w").grid(
         column=0, row=0, padx=5, pady=5, sticky='W')
-    ttk.Label(values_frame, text="Object diameter:\nMUST be an ODD integer", anchor="w").grid(
+    ttk.Label(values_frame, text="Object area (In pixels):\nMUST be an ODD integer", anchor="w").grid(
         column=0, row=1, padx=5, pady=5, sticky='W')
     ttk.Label(values_frame, text="# of files per condition:", anchor="w").grid(
         column=0, row=2, padx=5, pady=5, sticky='W')
@@ -162,7 +159,7 @@ if __name__ == '__main__':
         column=0, row=2, padx=5, pady=5)
     ttk.Entry(values_frame, textvariable=tk_pixel_size).grid(
         column=1, row=0, padx=5, pady=5)
-    ttk.Entry(values_frame, textvariable=tk_object_diameter).grid(
+    ttk.Entry(values_frame, textvariable=tk_object_area).grid(
         column=1, row=1, padx=5, pady=5)
     ttk.Entry(values_frame, textvariable=tk_sheet_size).grid(
         column=1, row=2, padx=5, pady=5)
@@ -223,7 +220,7 @@ if __name__ == '__main__':
     # This also updates the default values, so they will be saved the next time you run the program
     try:
         pixel_size = tk_pixel_size.get()
-        object_diameter = tk_object_diameter.get()
+        object_area = tk_object_area.get()
         full_obj_data = tk_full_obj_data.get()
         sheet_size = tk_sheet_size.get()
         trk_memory = tk_trk_memory.get()
@@ -234,7 +231,7 @@ if __name__ == '__main__':
         showinfo(title='Whoops!',
                  message='Error: Invalid Input\nPlease restart program')
         exit()
-    Default_values = [pixel_size, object_diameter, full_obj_data,
+    Default_values = [pixel_size, object_area, full_obj_data,
                       sheet_size, trk_memory, search_range, trk_algo, fps]
     with open('Default_values.pickle', 'wb') as f:
         pickle.dump(Default_values, f)
@@ -428,7 +425,7 @@ if __name__ == '__main__':
         exit()
 
     # w/o this, trackpy prints lots of information that's useless for the user, so I silenced it
-    tp.quiet()
+    quiet()
 
     thresholded_tifs = []
     split_list = []
@@ -437,7 +434,7 @@ if __name__ == '__main__':
     book = op.Workbook()
     book.remove(book.active)
     writer = pd.ExcelWriter(
-        f'Analyzed_Data-{dir_name}.xlsx', engine='openpyxl')
+        f'{dir_name}.xlsx', engine='openpyxl')
     writer.book = book
 
     # For full object data option (multiple excel sheets)
@@ -511,12 +508,43 @@ if __name__ == '__main__':
             frames = tif.imread(f'{split_list[j][i]}')
 
             # tracking the objects & collecting obj information like position, size, brightness, ect.
-            f = tp.batch(frames[:], object_diameter, invert=True,
-                         engine=trk_algo, processes='auto')
+            f = batch(frames[:], object_area, invert=True,
+                      engine=trk_algo, processes='auto')
 
             # Linking the objects / tracking their paths (msd == mean square displacement)
-            linked_obj = tp.link_df(f, search_range, memory=trk_memory)
-            squared_motion = tp.motion.imsd(linked_obj, pixel_size, fps)
+            linked_obj = link_df(f, search_range, memory=trk_memory)
+            linked_obj = linked_obj.sort_values(
+                by=['particle', 'frame'])
+            # Need to replace this with pythag equations
+            squared_motion = imsd(linked_obj, pixel_size, fps)
+
+            # dd_values =  desired displacement values
+            dd_values = linked_obj[['particle', 'frame', 'x', 'y']]
+            total_objs = dd_values['particle'].iloc[-1]
+            reciprocol_fps = 1/fps
+            start_time = int((time())*1000)
+
+            for particle in range(0, total_objs):
+
+                pythag_df = dd_values[dd_values['particle'] == particle]
+
+                if len(pythag_df) >= 1:
+                    for frame in range(1, len(pythag_df)):
+                        Xn = pythag_df['x'].iloc[frame-1]
+                        Yn = pythag_df['y'].iloc[frame-1]
+                        Xn1 = pythag_df['x'].iloc[frame]
+                        Yn1 = pythag_df['y'].iloc[frame]
+                        displacement = sqrt((Xn-Xn1)**2+(Yn-Yn1)**2)
+                        displacement = (
+                            displacement * pixel_size)/(reciprocol_fps)
+                else:
+                    pass
+            end_time = int((time())*1000)
+
+            elapsed_time = end_time-start_time
+            elapsed_time_sec = round(elapsed_time/1000, 2)
+            print(
+                f"Total time to run was {elapsed_time} ms or {elapsed_time_sec} sec")
 
             msd_df = squared_motion.transpose()
             msd_df.insert(
@@ -524,14 +552,12 @@ if __name__ == '__main__':
 
             # Full object data option where all variables are saved (object x and y for each frame & object, lots of data!)
             if full_obj_data == True:
-                df2 = linked_obj.sort_values(by=['particle', 'frame'])
+                df2 = linked_obj
                 df2.insert(0, "File", file_num, allow_duplicates=True)
                 full_obj_df = pd.concat([full_obj_df, df2])
 
             # This section is finding the # of pixels that are in each of the object (object size)
             desired_values = linked_obj[['frame', 'particle', 'mass']]
-            desired_values = desired_values.sort_values(
-                by=['particle', 'frame'])
             total_objs = desired_values['particle'].iloc[-1]
 
             # loop to calculate mean and std for the particle size * brightness, which is converted into pixels by x/255
