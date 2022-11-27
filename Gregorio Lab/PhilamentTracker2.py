@@ -1,12 +1,19 @@
-from datetime import date
-import multiprocessing
-from tkinter import filedialog as fd
+# This program is meant to take input of prerecorded .tif videos of bright objects on a dark background
+# and output thresholded .tif videos, along with an excel sheet of the mean squared displacement of each
+# object for all the imported videos!
+
+# All code and comments written by Ryan Bowser (@maxwellbowser on github, ryanbowser@arizona.edu)
+# Feel free to send me an email if you have any questions!
+
+
 from tkinter import ttk
 from tkinter.messagebox import showinfo
 from tkinter import messagebox
 import os
 import os.path
-
+from datetime import date
+from multiprocessing import freeze_support
+from tkinter import filedialog as fd
 import cv2
 
 from numpy import array
@@ -25,23 +32,14 @@ from statistics import mean
 from math import sqrt
 import pickle
 
-# This program is meant to take input of prerecorded .tif videos of bright objects on a dark background
-# and output thresholded .tif videos, along with an excel sheet of the mean squared displacement of each
-# object for all the imported videos!
-
-# All code and comments written by Ryan Bowser (@maxwellbowser on github, ryanbowser@arizona.edu)
-# Feel free to send me an email if you have any questions!
 
 if __name__ == '__main__':
-
     # This line is neccesary for proper running after being compiled with pyinstaller
-    multiprocessing.freeze_support()
-
+    freeze_support()
     todays_date = date.today()
 
     # All of this is for the starting GUI (I'm guessing I could make it smaller/more efficient)
     # If you're reading this and have any advice plz let me know!
-
     global pixel_size
     global object_area
     global full_obj_data
@@ -50,12 +48,13 @@ if __name__ == '__main__':
     global search_range
     global trk_algo
 
-    # Function for opening browse window selecting files
+    # Handling user closing window, so that the program will end
     def on_closing():
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             root.destroy()
             exit()
 
+    # Function for opening browse window selecting files
     def select_files():
 
         filetypes = (
@@ -153,7 +152,7 @@ if __name__ == '__main__':
 
     # Checkbox / Entries being made
     ttk.Checkbutton(options_frame, text="Include full object data? \n(Warning: Large files)",
-                                        variable=tk_full_obj_data, onvalue=True, offvalue=False).grid(
+                    variable=tk_full_obj_data, onvalue=True, offvalue=False).grid(
         column=0, row=0, padx=10, pady=5, sticky='N')
     ttk.Entry(options_frame, width=10, textvariable=tk_date).grid(
         column=0, row=2, padx=5, pady=5)
@@ -526,19 +525,27 @@ if __name__ == '__main__':
 
             for particle in range(0, total_objs):
 
-                pythag_df = dd_values[dd_values['particle'] == particle]
+                pythag_df = dd_values[dd_values['particle']
+                                      == particle]
 
                 if len(pythag_df) >= 1:
+                    first_x = pythag_df['x'].iloc[0]
+                    first_y = pythag_df['y'].iloc[0]
+                    first_frame = pythag_df['frame'].iloc[0]
+                    output_list = [first_x, first_y, first_frame]
+
                     for frame in range(1, len(pythag_df)):
                         Xn = pythag_df['x'].iloc[frame-1]
                         Yn = pythag_df['y'].iloc[frame-1]
                         Xn1 = pythag_df['x'].iloc[frame]
                         Yn1 = pythag_df['y'].iloc[frame]
-                        displacement = sqrt((Xn-Xn1)**2+(Yn-Yn1)**2)
+                        displacement = sqrt(((Xn-Xn1)**2)+(Yn-Yn1)**2)
                         displacement = (
                             displacement * pixel_size)/(reciprocol_fps)
+                        output_list.append(displacement)
                 else:
                     pass
+                #output_df = pd.concat([output_df, pd.DataFrame(output_list)])
             end_time = int((time())*1000)
 
             elapsed_time = end_time-start_time
@@ -549,6 +556,8 @@ if __name__ == '__main__':
             msd_df = squared_motion.transpose()
             msd_df.insert(
                 0, "File", file_num, allow_duplicates=True)
+            # output_df.insert(
+            #    0, "File", file_num, allow_duplicates=True)
 
             # Full object data option where all variables are saved (object x and y for each frame & object, lots of data!)
             if full_obj_data == True:
