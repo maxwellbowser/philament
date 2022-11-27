@@ -22,7 +22,7 @@ from numba import njit
 import pandas as pd
 from pandas import ExcelWriter
 import tifffile as tif
-from time import time
+#from time import time
 import tkinter as tk
 from trackpy import quiet, batch, link_df
 from trackpy.motion import imsd
@@ -490,6 +490,7 @@ if __name__ == '__main__':
     for j in range(0, len(split_list)):
 
         # Defining Variables
+        displacement_df = pd.DataFrame()
         full_obj_df = pd.DataFrame()
         final_df = pd.DataFrame()
 
@@ -514,21 +515,21 @@ if __name__ == '__main__':
             linked_obj = link_df(f, search_range, memory=trk_memory)
             linked_obj = linked_obj.sort_values(
                 by=['particle', 'frame'])
+
             # Need to replace this with pythag equations
             squared_motion = imsd(linked_obj, pixel_size, fps)
 
-            # dd_values =  desired displacement values
+            # dd_values =  desired displacement values || REMEMBER TO ADD COMMENTS BELOW
             dd_values = linked_obj[['particle', 'frame', 'x', 'y']]
             total_objs = dd_values['particle'].iloc[-1]
             reciprocol_fps = 1/fps
-            start_time = int((time())*1000)
 
             for particle in range(0, total_objs):
 
                 pythag_df = dd_values[dd_values['particle']
                                       == particle]
 
-                if len(pythag_df) >= 1:
+                if len(pythag_df) > 1:
                     first_x = pythag_df['x'].iloc[0]
                     first_y = pythag_df['y'].iloc[0]
                     first_frame = pythag_df['frame'].iloc[0]
@@ -543,21 +544,24 @@ if __name__ == '__main__':
                         displacement = (
                             displacement * pixel_size)/(reciprocol_fps)
                         output_list.append(displacement)
+                    df = pd.DataFrame(output_list)
+                    displacement_df = pd.concat([displacement_df, df], axis=1)
+
                 else:
                     pass
-                #output_df = pd.concat([output_df, pd.DataFrame(output_list)])
-            end_time = int((time())*1000)
+                # output_df = pd.concat([output_df, displacement_df])
+            displacement_df = displacement_df.rename(
+                index={0: 'First X', 1: 'First Y', 2: 'First Frame'})
 
-            elapsed_time = end_time-start_time
-            elapsed_time_sec = round(elapsed_time/1000, 2)
-            print(
-                f"Total time to run was {elapsed_time} ms or {elapsed_time_sec} sec")
+            displacement_df = displacement_df.transpose()
 
+            displacement_df.insert(
+                0, "File", file_num, allow_duplicates=True)
+
+            displacement_df.to_excel('Penishaha.xlsx')
             msd_df = squared_motion.transpose()
             msd_df.insert(
                 0, "File", file_num, allow_duplicates=True)
-            # output_df.insert(
-            #    0, "File", file_num, allow_duplicates=True)
 
             # Full object data option where all variables are saved (object x and y for each frame & object, lots of data!)
             if full_obj_data == True:
@@ -574,14 +578,14 @@ if __name__ == '__main__':
 
                 mass_df = desired_values[desired_values['particle'] == object]
 
-                # If just one data point is available, then theres no point to tracking it, so the object is skipped
+                # If just one data point is available, obj is skipped
                 if len(mass_df) >= 1:
                     avg_mass = (mass_df['mass'].mean())/255
                     mass_std = (mass_df['mass'].std())/255
 
                     # Adding the mean and stdev of the object size to list
-                    temp_list = [avg_mass.round(2), mass_std.round(2)]
-                    obj_size_list.append(temp_list)
+                    size_list = [avg_mass.round(2), mass_std.round(2)]
+                    obj_size_list.append(size_list)
 
                 else:
                     pass
@@ -591,18 +595,15 @@ if __name__ == '__main__':
                 'Average Obj Size', 'Std of Obj Size'])
 
             output_df = obj_size_df.join(msd_df)
-            output_df.dropna(subset=['Std of Obj Size'], inplace=True)
+            output_df = output_df.dropna(subset=['Std of Obj Size'])
             final_df = pd.concat([final_df, output_df])
+
+        final_df.columns.name = 'Obj'
 
         # Saving as excel (The automatic naming is based on the naming convention below)
         # Naming convention: Thresh-XXXXXXXXX-01.tif
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7:-7]
-
-        # This is me trying to fix the issue of the excel sheet not saving properly
-        # Honestly Idk what this is going to do, I need to come back to this
-        # Dynamic_Variable_Name = 'Sheet'
-        # globals()[Dynamic_Variable_Name] = final_df
 
         final_df.to_excel(writer, sheet_name=proper_name)
         writer.save()
