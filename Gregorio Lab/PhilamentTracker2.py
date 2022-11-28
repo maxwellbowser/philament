@@ -1,6 +1,6 @@
 # This program is meant to take input of prerecorded .tif videos of bright objects on a dark background
-# and output thresholded .tif videos, along with an excel sheet of the mean squared displacement of each
-# object for all the imported videos!
+# and output thresholded .tif videos, along with an excel sheet of the frame to frame displacement of each
+# object for all of the imported videos!
 
 # All code and comments written by Ryan Bowser (@maxwellbowser on github, ryanbowser@arizona.edu)
 # Feel free to send me an email if you have any questions!
@@ -426,6 +426,18 @@ if __name__ == '__main__':
     # w/o this, trackpy prints lots of information that's useless for the user, so I silenced it
     quiet()
 
+    # to automatically adjust for users with higher fps or longer video sequences (we use 5 fps and 10 sec videos)
+    def column_naming(df_length, file_fps):
+
+        df_dict = {0: 'First X', 1: 'First Y', 2: 'First Frame'}
+        recip_fps = 1/file_fps
+
+        for cell in range(3, df_length):
+            df_dict[cell] = (recip_fps)
+            recip_fps += 1/file_fps
+
+        return df_dict
+
     thresholded_tifs = []
     split_list = []
 
@@ -516,9 +528,6 @@ if __name__ == '__main__':
             linked_obj = linked_obj.sort_values(
                 by=['particle', 'frame'])
 
-            # Need to replace this with pythag equations
-            squared_motion = imsd(linked_obj, pixel_size, fps)
-
             # dd_values =  desired displacement values || REMEMBER TO ADD COMMENTS BELOW
             dd_values = linked_obj[['particle', 'frame', 'x', 'y']]
             total_objs = dd_values['particle'].iloc[-1]
@@ -549,19 +558,16 @@ if __name__ == '__main__':
 
                 else:
                     pass
-                # output_df = pd.concat([output_df, displacement_df])
+
             displacement_df = displacement_df.rename(
-                index={0: 'First X', 1: 'First Y', 2: 'First Frame'})
+                index=column_naming(len(displacement_df), fps))
 
             displacement_df = displacement_df.transpose()
 
             displacement_df.insert(
                 0, "File", file_num, allow_duplicates=True)
 
-            displacement_df.to_excel('Penishaha.xlsx')
-            msd_df = squared_motion.transpose()
-            msd_df.insert(
-                0, "File", file_num, allow_duplicates=True)
+            displacement_df = displacement_df.reset_index(drop=True)
 
             # Full object data option where all variables are saved (object x and y for each frame & object, lots of data!)
             if full_obj_data == True:
@@ -579,7 +585,7 @@ if __name__ == '__main__':
                 mass_df = desired_values[desired_values['particle'] == object]
 
                 # If just one data point is available, obj is skipped
-                if len(mass_df) >= 1:
+                if len(mass_df) > 1:
                     avg_mass = (mass_df['mass'].mean())/255
                     mass_std = (mass_df['mass'].std())/255
 
@@ -594,16 +600,17 @@ if __name__ == '__main__':
             obj_size_df = pd.DataFrame(obj_size_list, columns=[
                 'Average Obj Size', 'Std of Obj Size'])
 
-            output_df = obj_size_df.join(msd_df)
-            output_df = output_df.dropna(subset=['Std of Obj Size'])
+            output_df = obj_size_df.join(displacement_df)
             final_df = pd.concat([final_df, output_df])
 
-        final_df.columns.name = 'Obj'
+        # This won't work for some reason, I'm trying to add a header to the left-most index column
+        #final_df.columns.name = 'Obj'
 
         # Saving as excel (The automatic naming is based on the naming convention below)
         # Naming convention: Thresh-XXXXXXXXX-01.tif
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7:-7]
+        final_df.to_excel(f'{proper_name}.xlsx', sheet_name='Analyzed Data')
 
         final_df.to_excel(writer, sheet_name=proper_name)
         writer.save()
