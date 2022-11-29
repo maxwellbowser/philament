@@ -12,22 +12,16 @@ from tkinter import messagebox
 import os
 import os.path
 from datetime import date
-from multiprocessing import freeze_support
+import multiprocessing
 from tkinter import filedialog as fd
 import cv2
 
 from numpy import array
-import openpyxl as op
-from numba import njit
 import pandas as pd
-from pandas import ExcelWriter
 import tifffile as tif
-#from time import time
 import tkinter as tk
-from trackpy import quiet, batch, link_df
-from trackpy.motion import imsd
+import trackpy as tp
 import random
-from multiprocessing import freeze_support
 from statistics import mean
 from math import sqrt
 import pickle
@@ -35,8 +29,7 @@ import pickle
 
 if __name__ == '__main__':
     # This line is neccesary for proper running after being compiled with pyinstaller
-    freeze_support()
-    todays_date = date.today()
+    multiprocessing.freeze_support()
 
     # All of this is for the starting GUI (I'm guessing I could make it smaller/more efficient)
     # If you're reading this and have any advice plz let me know!
@@ -47,6 +40,7 @@ if __name__ == '__main__':
     global trk_memory
     global search_range
     global trk_algo
+    todays_date = date.today()
 
     # Handling user closing window, so that the program will end
     def on_closing():
@@ -122,7 +116,7 @@ if __name__ == '__main__':
     options_frame = ttk.Frame(root,  padding="2 2 10 10")
     options_frame.grid(column=1, row=0)
 
-    # Variables being made
+    # Tkinter variables being made
     tk_full_obj_data = tk.BooleanVar(value=full_obj_data)
     tk_pixel_size = tk.DoubleVar(value=pixel_size)
     tk_object_area = tk.IntVar(value=object_area)
@@ -245,7 +239,7 @@ if __name__ == '__main__':
 
     except FileExistsError:
         showinfo(
-            "Error", "Folder already exists!\nPlese delete or move the folder and try again.")
+            "Error", "Folder already exists!\nPlease delete or move the folder and try again.")
         exit()
 
     # Gui to help user find best thresholding value for videos (Picks a random chosen video to use)
@@ -374,13 +368,10 @@ if __name__ == '__main__':
 
     # Start of the data analysis, the thresholding and saving of files
     try:
-
         for i in range(0, len(filepath)):
-
             # incase someone selects non-files
             assert os.path.isfile(filepath[i])
             try:
-
                 threshold_images = []
                 original_images = []
 
@@ -405,7 +396,6 @@ if __name__ == '__main__':
 
                     progress.set(i + 1)
                     root.update()
-
             except AssertionError:
                 showinfo(
                     title="Assertion Error",
@@ -424,7 +414,7 @@ if __name__ == '__main__':
         exit()
 
     # w/o this, trackpy prints lots of information that's useless for the user, so I silenced it
-    quiet()
+    tp.quiet()
 
     # to automatically adjust for users with higher fps or longer video sequences (we use 5 fps and 10 sec videos)
     def column_naming(df_length, file_fps):
@@ -440,21 +430,6 @@ if __name__ == '__main__':
 
     thresholded_tifs = []
     split_list = []
-
-    # This allows for saving multiple sheets to the same excel file
-    book = op.Workbook()
-    book.remove(book.active)
-    writer = pd.ExcelWriter(
-        f'{dir_name}.xlsx', engine='openpyxl')
-    writer.book = book
-
-    # For full object data option (multiple excel sheets)
-    if full_obj_data == True:
-        book1 = op.Workbook()
-        book1.remove(book1.active)
-        writer1 = pd.ExcelWriter(
-            f'Full Object Data-{dir_name}.xlsx', engine='openpyxl')
-        writer1.book1 = book1
 
     # By finding all filepaths that end in .tif in the working directory (where the thresholded videos are saved)
     # This function is able to automatically find the filepaths for the newly thresholded videos
@@ -502,11 +477,12 @@ if __name__ == '__main__':
     for j in range(0, len(split_list)):
 
         # Defining Variables
-        displacement_df = pd.DataFrame()
         full_obj_df = pd.DataFrame()
         final_df = pd.DataFrame()
 
         for i in range(0, len(split_list[j])):
+
+            displacement_df = pd.DataFrame()
 
             progress.set(progress.get() + 1)
             root.update()
@@ -520,11 +496,11 @@ if __name__ == '__main__':
             frames = tif.imread(f'{split_list[j][i]}')
 
             # tracking the objects & collecting obj information like position, size, brightness, ect.
-            f = batch(frames[:], object_area, invert=True,
-                      engine=trk_algo, processes='auto')
+            f = tp.batch(frames[:], object_area, invert=True,
+                         engine=trk_algo, processes='auto')
 
-            # Linking the objects / tracking their paths (msd == mean square displacement)
-            linked_obj = link_df(f, search_range, memory=trk_memory)
+            # Linking the objects / tracking their paths
+            linked_obj = tp.link_df(f, search_range, memory=trk_memory)
             linked_obj = linked_obj.sort_values(
                 by=['particle', 'frame'])
 
@@ -612,13 +588,10 @@ if __name__ == '__main__':
         proper_name = filename[7:-7]
         final_df.to_excel(f'{proper_name}.xlsx', sheet_name='Analyzed Data')
 
-        final_df.to_excel(writer, sheet_name=proper_name)
-        writer.save()
-
         # Full object data option
         if full_obj_data == True:
-            full_obj_df.to_excel(writer1, sheet_name=proper_name)
-            writer1.save()
+            full_obj_df.to_excel(
+                f'{proper_name}-Full Object Data.xlsx', sheet_name='Analyzed Data')
 
 # Incase user clicks the red x and wants to shutdown the program.
     root.protocol("WM_DELETE_WINDOW", on_closing)
