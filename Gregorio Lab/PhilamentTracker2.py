@@ -11,7 +11,6 @@ from math import sqrt
 from statistics import mean
 import random
 import trackpy as tp
-from time import time
 from tkinter import ttk
 from tkinter.messagebox import showinfo
 from tkinter import messagebox
@@ -21,7 +20,6 @@ from datetime import date
 import multiprocessing
 from tkinter import filedialog as fd
 import cv2
-from numba import njit
 
 from numpy import array
 import pandas as pd
