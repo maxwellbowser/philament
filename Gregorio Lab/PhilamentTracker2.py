@@ -6,6 +6,12 @@
 # Feel free to send me an email if you have any questions!
 
 
+import pickle
+from math import sqrt
+from statistics import mean
+import random
+import trackpy as tp
+from time import time
 from tkinter import ttk
 from tkinter.messagebox import showinfo
 from tkinter import messagebox
@@ -15,16 +21,12 @@ from datetime import date
 import multiprocessing
 from tkinter import filedialog as fd
 import cv2
+from numba import njit
 
 from numpy import array
 import pandas as pd
 import tifffile as tif
 import tkinter as tk
-import trackpy as tp
-import random
-from statistics import mean
-from math import sqrt
-import pickle
 
 
 if __name__ == '__main__':
@@ -504,10 +506,26 @@ if __name__ == '__main__':
             linked_obj = linked_obj.sort_values(
                 by=['particle', 'frame'])
 
-            # dd_values =  desired displacement values || REMEMBER TO ADD COMMENTS BELOW
+            # This section is getting the speed and positional data about the objects
+            # The data is formatted as follows (example data):
+            #
+            # 1st X | 1st Y | First Frame | {reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 | ect..
+            # ---------------------------------------------------------------------------------------------------------
+            #  150  |  150  |      0      | These sections are the instantaneous speed of the object at each frame
+            #  200  |  200  |      0      |    1.2 (Microns/sec) |          2.3         |            0.5       |
+            #  168  |  15   |      2      |         0.3          |          0.8         |            1.2       |
+
+            # dd_values =  desired displacement values
             dd_values = linked_obj[['particle', 'frame', 'x', 'y']]
             total_objs = dd_values['particle'].iloc[-1]
             reciprocol_fps = 1/fps
+
+            # The workflow for this loop is to separate the data for each particle into a new dataframe,
+            # find the initial object coordinates & first frame (so you can go back and locate the object).
+            #
+            # Then for each frame, the locations and frame numbers are used to find the change in distance
+            # from frame to frame. This is then converted to an instantaneous velocity by multiplying by
+            # the pixel size and dividing by the reciprocol fps, and this number is then added to the list.
 
             for particle in range(0, total_objs):
 
@@ -523,12 +541,19 @@ if __name__ == '__main__':
                     for frame in range(1, len(pythag_df)):
                         Xn = pythag_df['x'].iloc[frame-1]
                         Yn = pythag_df['y'].iloc[frame-1]
+                        Frame_n = pythag_df['frame'].iloc[frame-1]
+
                         Xn1 = pythag_df['x'].iloc[frame]
                         Yn1 = pythag_df['y'].iloc[frame]
+                        Frame_n1 = pythag_df['frame'].iloc[frame]
+
+                        frame_diff = Frame_n1 - Frame_n
+
                         displacement = sqrt(((Xn-Xn1)**2)+(Yn-Yn1)**2)
                         displacement = (
-                            displacement * pixel_size)/(reciprocol_fps)
+                            displacement * pixel_size)/(reciprocol_fps*frame_diff)
                         output_list.append(displacement)
+
                     df = pd.DataFrame(output_list)
                     displacement_df = pd.concat([displacement_df, df], axis=1)
 
@@ -584,6 +609,7 @@ if __name__ == '__main__':
 
         # Saving as excel (The automatic naming is based on the naming convention below)
         # Naming convention: Thresh-XXXXXXXXX-01.tif
+
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7:-7]
         final_df.to_excel(f'{proper_name}.xlsx', sheet_name='Analyzed Data')
