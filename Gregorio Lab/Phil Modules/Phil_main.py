@@ -26,16 +26,6 @@ from Phil_track import *
 if __name__ == '__main__':
     # This line is neccesary for proper running after being compiled with pyinstaller
     multiprocessing.freeze_support()
-
-    # All of this is for the starting GUI (I'm guessing I could make it smaller/more efficient)
-    # If you're reading this and have any advice plz let me know!
-    global pixel_size
-    global object_area
-    global full_obj_data
-    global sheet_size
-    global trk_memory
-    global search_range
-    global trk_algo
     todays_date = date.today()
 
     # Handling user closing window, so that the program will end
@@ -63,7 +53,7 @@ if __name__ == '__main__':
         root.destroy()
 
     # This will check if the default values have already been made
-    # If not, it sets them to my preset values and then saves a default_value file
+    # If not, it sets them to our preset values and then creates a default_value file
     settings_test = os.path.exists('Default_values.pickle')
 
     if settings_test == True:
@@ -165,6 +155,9 @@ if __name__ == '__main__':
     menubut["menu"] = file
 
     # Functions for buttons
+    # I had trouble getting the trk algo variable to change, and I was able to
+    # make it work with this function
+    # SHOULD FIX BEFORE PUBLICATION
     def set_value(x):
         global trk_algo
         trk_algo = x
@@ -173,7 +166,8 @@ if __name__ == '__main__':
         root.destroy()
         exit()
 
-    # Making RadioButtons (would've made with a for loop to save space, but it caused problems, and this is more readable anyways)
+    # Making RadioButtons (would've made with a for loop to save space, but it
+    # caused problems, and this is more readable anyways)
     file.add_radiobutton(
         label='Numba',
         command=lambda: set_value('numba'))
