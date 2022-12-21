@@ -10,13 +10,18 @@ import tifffile as tif
 # to automatically adjust for users with higher fps or longer video sequences (we use 5 fps and 10 sec videos)
 def column_naming(df_length, file_fps):
 
-    df_dict = {0: 'Particle', 1: 'First X',
-               2: 'First Y', 3: 'First Frame', 4: 'Distance'}
-    recip_fps = 1/file_fps
+    df_dict = {
+        0: "Particle",
+        1: "First X",
+        2: "First Y",
+        3: "First Frame",
+        4: "Distance",
+    }
+    recip_fps = 1 / file_fps
 
     for cell in range(5, df_length):
-        df_dict[cell] = (recip_fps)
-        recip_fps += 1/file_fps
+        df_dict[cell] = recip_fps
+        recip_fps += 1 / file_fps
 
     return df_dict
 
@@ -51,16 +56,16 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
 
             obj_size_list = []
 
-            frames = tif.imread(f'{split_list[j][i]}')
+            frames = tif.imread(f"{split_list[j][i]}")
 
             # tracking the objects & collecting obj information like position, size, brightness, ect.
-            f = tp.batch(frames[:], object_area, invert=True,
-                         engine=trk_algo, processes='auto')
+            f = tp.batch(
+                frames[:], object_area, invert=True, engine=trk_algo, processes="auto"
+            )
 
             # Linking the objects / tracking their paths
             linked_obj = tp.link_df(f, search_range, memory=trk_memory)
-            linked_obj = linked_obj.sort_values(
-                by=['particle', 'frame'])
+            linked_obj = linked_obj.sort_values(by=["particle", "frame"])
 
             # This next section is getting the speed and positional data about the objects
             # The data is formatted as follows (example data):
@@ -72,9 +77,9 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
             #  168  |  15   |      2      |         0.3          |          0.8         |            1.2       |
 
             # (dd_values means desired_displacement values)
-            dd_values = linked_obj[['particle', 'frame', 'x', 'y']]
-            total_objs = dd_values['particle'].iloc[-1]
-            reciprocol_fps = 1/fps
+            dd_values = linked_obj[["particle", "frame", "x", "y"]]
+            total_objs = dd_values["particle"].iloc[-1]
+            reciprocol_fps = 1 / fps
 
             # The workflow for this loop is to separate the data for each particle into a new dataframe,
             # find the initial object coordinates & first frame (so you can go back and locate the object).
@@ -85,35 +90,42 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
 
             for particle in range(0, total_objs):
 
-                pythag_df = dd_values[dd_values['particle']
-                                      == particle]
+                pythag_df = dd_values[dd_values["particle"] == particle]
 
                 if len(pythag_df) > 1:
-                    first_x = pythag_df['x'].iloc[0]
-                    first_y = pythag_df['y'].iloc[0]
-                    first_frame = pythag_df['frame'].iloc[0]
-                    particle_num = pythag_df['particle'].iloc[0]
-                    last_x = pythag_df['x'].iloc[-1]
-                    last_y = pythag_df['y'].iloc[-1]
-                    distance = sqrt(((first_x-last_x)**2) +
-                                    (first_y-last_y)**2)*pixel_size
-                    output_list = [particle_num, first_x,
-                                   first_y, first_frame, distance]
+                    first_x = pythag_df["x"].iloc[0]
+                    first_y = pythag_df["y"].iloc[0]
+                    first_frame = pythag_df["frame"].iloc[0]
+                    particle_num = pythag_df["particle"].iloc[0]
+                    last_x = pythag_df["x"].iloc[-1]
+                    last_y = pythag_df["y"].iloc[-1]
+                    distance = (
+                        sqrt(((first_x - last_x) ** 2) + (first_y - last_y) ** 2)
+                        * pixel_size
+                    )
+                    output_list = [
+                        particle_num,
+                        first_x,
+                        first_y,
+                        first_frame,
+                        distance,
+                    ]
 
                     for frame in range(1, len(pythag_df)):
-                        Xn = pythag_df['x'].iloc[frame-1]
-                        Yn = pythag_df['y'].iloc[frame-1]
-                        Frame_n = pythag_df['frame'].iloc[frame-1]
+                        Xn = pythag_df["x"].iloc[frame - 1]
+                        Yn = pythag_df["y"].iloc[frame - 1]
+                        Frame_n = pythag_df["frame"].iloc[frame - 1]
 
-                        Xn1 = pythag_df['x'].iloc[frame]
-                        Yn1 = pythag_df['y'].iloc[frame]
-                        Frame_n1 = pythag_df['frame'].iloc[frame]
+                        Xn1 = pythag_df["x"].iloc[frame]
+                        Yn1 = pythag_df["y"].iloc[frame]
+                        Frame_n1 = pythag_df["frame"].iloc[frame]
 
                         frame_diff = Frame_n1 - Frame_n
 
-                        displacement = sqrt(((Xn-Xn1)**2)+(Yn-Yn1)**2)
-                        displacement = (
-                            displacement * pixel_size)/(reciprocol_fps*frame_diff)
+                        displacement = sqrt(((Xn - Xn1) ** 2) + (Yn - Yn1) ** 2)
+                        displacement = (displacement * pixel_size) / (
+                            reciprocol_fps * frame_diff
+                        )
                         output_list.append(displacement)
 
                     df = pd.DataFrame(output_list)
@@ -123,12 +135,12 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
                     pass
 
             displacement_df = displacement_df.rename(
-                index=column_naming(len(displacement_df), fps))
+                index=column_naming(len(displacement_df), fps)
+            )
 
             displacement_df = displacement_df.transpose()
 
-            displacement_df.insert(
-                0, "File", file_num, allow_duplicates=True)
+            displacement_df.insert(0, "File", file_num, allow_duplicates=True)
 
             displacement_df = displacement_df.reset_index(drop=True)
 
@@ -139,18 +151,18 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
                 full_obj_df = pd.concat([full_obj_df, df2])
 
             # This section is finding the # of pixels that are in each of the object (object size)
-            desired_values = linked_obj[['frame', 'particle', 'mass']]
-            total_objs = desired_values['particle'].iloc[-1]
+            desired_values = linked_obj[["frame", "particle", "mass"]]
+            total_objs = desired_values["particle"].iloc[-1]
 
             # Loop to calculate mean and std for the particle size * brightness, which is converted into pixels by x/255
             for object in range(0, int(total_objs)):
 
-                mass_df = desired_values[desired_values['particle'] == object]
+                mass_df = desired_values[desired_values["particle"] == object]
 
                 # If just one data point is available, obj is skipped, since you cant take a std from one data point
                 if len(mass_df) > 1:
-                    avg_mass = (mass_df['mass'].mean())/255
-                    mass_std = (mass_df['mass'].std())/255
+                    avg_mass = (mass_df["mass"].mean()) / 255
+                    mass_std = (mass_df["mass"].std()) / 255
 
                     # Adding the mean and stdev of the object size to list
                     size_list = [avg_mass.round(2), mass_std.round(2)]
@@ -159,8 +171,9 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
                 else:
                     pass
 
-            obj_size_df = pd.DataFrame(obj_size_list, columns=[
-                'Average Obj Size', 'Std of Obj Size'])
+            obj_size_df = pd.DataFrame(
+                obj_size_list, columns=["Average Obj Size", "Std of Obj Size"]
+            )
 
             output_df = obj_size_df.join(displacement_df)
             final_df = pd.concat([final_df, output_df])
@@ -170,10 +183,10 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
 
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7:-7]
-        final_df.to_excel(f'{proper_name}.xlsx',
-                          sheet_name='Analyzed Data', index=0)
+        final_df.to_excel(f"{proper_name}.xlsx", sheet_name="Analyzed Data", index=0)
 
         # Full object data option
         if full_obj_data == True:
             full_obj_df.to_excel(
-                f'{proper_name}-Full Object Data.xlsx', sheet_name='Analyzed Data')
+                f"{proper_name}-Full Object Data.xlsx", sheet_name="Analyzed Data"
+            )

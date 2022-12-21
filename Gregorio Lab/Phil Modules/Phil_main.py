@@ -19,16 +19,18 @@ from tkinter import filedialog as fd
 import cv2
 
 import tkinter as tk
+from ttkthemes import ThemedStyle
 from Phil_threshold import *
 from Phil_track import *
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # This line is neccesary for proper running after being compiled with pyinstaller
     multiprocessing.freeze_support()
     todays_date = date.today()
 
     # Handling user closing window, so that the program will end
+
     def on_closing():
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             root.destroy()
@@ -37,27 +39,23 @@ if __name__ == '__main__':
     # Function for opening browse window selecting files
     def select_files():
 
-        filetypes = (
-            ('TIFF Files', '*.tif'),
-            ('All files', '*.*')
-        )
+        filetypes = (("TIFF Files", "*.tif"), ("All files", "*.*"))
 
         global filepath
         filepath = []
 
         filepath = fd.askopenfilenames(
-            title='Open files',
-            initialdir=r'C:\Users\Desktop',
-            filetypes=filetypes)
+            title="Open files", initialdir=r"C:\Users\Desktop", filetypes=filetypes
+        )
 
         root.destroy()
 
     # This will check if the default values have already been made
     # If not, it sets them to our preset values and then creates a default_value file
-    settings_test = os.path.exists('Default_values.pickle')
+    settings_test = os.path.exists("Default_values.pickle")
 
     if settings_test == True:
-        with open('Default_values.pickle', 'rb') as f:
+        with open("Default_values.pickle", "rb") as f:
             past_values = pickle.load(f)
         pixel_size = past_values[0]
         object_area = past_values[1]
@@ -75,31 +73,41 @@ if __name__ == '__main__':
         sheet_size = 10
         trk_memory = 5
         search_range = 35
-        trk_algo = 'numba'
+        trk_algo = "numba"
         fps = 5
 
         # This is the order that the values are saved
-        Default_values = [pixel_size, object_area, full_obj_data,
-                          sheet_size, trk_memory, search_range, trk_algo, fps]
+        Default_values = [
+            pixel_size,
+            object_area,
+            full_obj_data,
+            sheet_size,
+            trk_memory,
+            search_range,
+            trk_algo,
+            fps,
+        ]
 
-        with open('Default_values.pickle', 'wb') as f:
+        with open("Default_values.pickle", "wb") as f:
             pickle.dump(Default_values, f)
 
     # Setting up root & frames for the starting GUI
     root = tk.Tk()
-    root.title('Welcome to Philament Tracker!')
-    root.geometry('540x375')
+    root.title("Welcome to Philament Tracker!")
+    root.geometry("540x375")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
+    style = ThemedStyle(root)
+    style.set_theme("equilux")
+    root.configure(bg="#464646")
 
-    button_frame = ttk.Frame(root,  padding="5 5 10 10")
+    button_frame = ttk.Frame(root, padding="5 5 10 10")
     button_frame.grid(column=1, row=1)
 
-    values_frame = ttk.Frame(root,  padding="5 5 10 10",
-                             takefocus=True)
+    values_frame = ttk.Frame(root, padding="5 5 10 10", takefocus=True)
     values_frame.grid(column=0, row=0)
 
-    options_frame = ttk.Frame(root,  padding="2 2 10 10")
+    options_frame = ttk.Frame(root, padding="2 2 10 10")
     options_frame.grid(column=1, row=0)
 
     # Tkinter variables being made
@@ -114,41 +122,60 @@ if __name__ == '__main__':
 
     # Labels being made
     ttk.Label(values_frame, text="Pixel size:", anchor="w").grid(
-        column=0, row=0, padx=5, pady=5, sticky='W')
-    ttk.Label(values_frame, text="Object area (In pixels):\nMUST be an ODD integer", anchor="w").grid(
-        column=0, row=1, padx=5, pady=5, sticky='W')
+        column=0, row=0, padx=5, pady=5, sticky="W"
+    )
+    ttk.Label(
+        values_frame,
+        text="Object area (In pixels):\nMUST be an ODD integer",
+        anchor="w",
+    ).grid(column=0, row=1, padx=5, pady=5, sticky="W")
     ttk.Label(values_frame, text="# of files per condition:", anchor="w").grid(
-        column=0, row=2, padx=5, pady=5, sticky='W')
-    ttk.Label(values_frame, text="Object tracking memory:\n(# of frames)", anchor="w").grid(
-        column=0, row=3, padx=5, pady=5, sticky='W')
+        column=0, row=2, padx=5, pady=5, sticky="W"
+    )
+    ttk.Label(
+        values_frame, text="Object tracking memory:\n(# of frames)", anchor="w"
+    ).grid(column=0, row=3, padx=5, pady=5, sticky="W")
     ttk.Label(values_frame, text="Search radius:\n(pixels)", anchor="w").grid(
-        column=0, row=4, padx=5, pady=5, sticky='W')
+        column=0, row=4, padx=5, pady=5, sticky="W"
+    )
     ttk.Label(values_frame, text="Frames per second:", anchor="w").grid(
-        column=0, row=5, padx=5, pady=5, sticky='W')
-    ttk.Label(values_frame, text="Path linking strategy:\n(Numba is recommended)", anchor="w").grid(
-        column=0, row=6, padx=5, pady=5, sticky='W')
-    ttk.Label(options_frame, text="Desired Folder Name:", anchor='n').grid(
-        column=0, row=1, padx=5, pady=5, sticky='N')
+        column=0, row=5, padx=5, pady=5, sticky="W"
+    )
+    ttk.Label(
+        values_frame, text="Path linking strategy:\n(Numba is recommended)", anchor="w"
+    ).grid(column=0, row=6, padx=5, pady=5, sticky="W")
+    ttk.Label(options_frame, text="Desired Folder Name:", anchor="n").grid(
+        column=0, row=1, padx=5, pady=5, sticky="N"
+    )
 
     # Checkbox / Entries being made
-    ttk.Checkbutton(options_frame, text="Include full object data? \n(Warning: Large files)",
-                    variable=tk_full_obj_data, onvalue=True, offvalue=False).grid(
-        column=0, row=0, padx=10, pady=5, sticky='N')
+    ttk.Checkbutton(
+        options_frame,
+        text="Include full object data? \n(Warning: Large files)",
+        variable=tk_full_obj_data,
+        onvalue=True,
+        offvalue=False,
+    ).grid(column=0, row=0, padx=10, pady=5, sticky="N")
     ttk.Entry(options_frame, width=10, textvariable=tk_date).grid(
-        column=0, row=2, padx=5, pady=5)
+        column=0, row=2, padx=5, pady=5
+    )
     ttk.Entry(values_frame, textvariable=tk_pixel_size).grid(
-        column=1, row=0, padx=5, pady=5)
+        column=1, row=0, padx=5, pady=5
+    )
     ttk.Entry(values_frame, textvariable=tk_object_area).grid(
-        column=1, row=1, padx=5, pady=5)
+        column=1, row=1, padx=5, pady=5
+    )
     ttk.Entry(values_frame, textvariable=tk_sheet_size).grid(
-        column=1, row=2, padx=5, pady=5)
+        column=1, row=2, padx=5, pady=5
+    )
     ttk.Entry(values_frame, textvariable=tk_trk_memory).grid(
-        column=1, row=3, padx=5, pady=5)
+        column=1, row=3, padx=5, pady=5
+    )
     ttk.Entry(values_frame, textvariable=tk_search_range).grid(
-        column=1, row=4, padx=5, pady=5)
-    ttk.Entry(values_frame, textvariable=tk_fps).grid(
-        column=1, row=5, padx=5, pady=5)
-    menubut = ttk.Menubutton(values_frame, text='Select One')
+        column=1, row=4, padx=5, pady=5
+    )
+    ttk.Entry(values_frame, textvariable=tk_fps).grid(column=1, row=5, padx=5, pady=5)
+    menubut = ttk.Menubutton(values_frame, text="Select One")
     menubut.grid(column=1, row=6, padx=5, pady=5)
 
     file = tk.Menu(menubut, tearoff=0)
@@ -168,33 +195,21 @@ if __name__ == '__main__':
 
     # Making RadioButtons (would've made with a for loop to save space, but it
     # caused problems, and this is more readable anyways)
+    file.add_radiobutton(label="Numba", command=lambda: set_value("numba"))
+    file.add_radiobutton(label="Recursive", command=lambda: set_value("recursive"))
     file.add_radiobutton(
-        label='Numba',
-        command=lambda: set_value('numba'))
-    file.add_radiobutton(
-        label='Recursive',
-        command=lambda: set_value('recursive'))
-    file.add_radiobutton(
-        label='Nonrecursive',
-        command=lambda: set_value('nonrecursive'))
-    file.add_radiobutton(
-        label='Drop',
-        command=lambda: set_value('drop'))
-    file.add_radiobutton(
-        label='Auto',
-        command=lambda: set_value('auto'))
+        label="Nonrecursive", command=lambda: set_value("nonrecursive")
+    )
+    file.add_radiobutton(label="Drop", command=lambda: set_value("drop"))
+    file.add_radiobutton(label="Auto", command=lambda: set_value("auto"))
 
-    browse_button = ttk.Button(
-        button_frame,
-        text='Browse',
-        command=select_files
-    ).grid(column=1, row=0, padx=1, pady=5)
+    browse_button = ttk.Button(button_frame, text="Browse", command=select_files).grid(
+        column=1, row=0, padx=1, pady=5
+    )
 
-    close_button = ttk.Button(
-        button_frame,
-        text='Cancel',
-        command=close_window
-    ).grid(column=0, row=0, padx=1, pady=5)
+    close_button = ttk.Button(button_frame, text="Cancel", command=close_window).grid(
+        column=0, row=0, padx=1, pady=5
+    )
 
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
@@ -211,17 +226,26 @@ if __name__ == '__main__':
         fps = tk_fps.get()
         chosen_dir_name = tk_date.get()
     except:
-        showinfo(title='Whoops!',
-                 message='Error: Invalid Input\nPlease restart program')
+        showinfo(
+            title="Whoops!", message="Error: Invalid Input\nPlease restart program"
+        )
         exit()
-    Default_values = [pixel_size, object_area, full_obj_data,
-                      sheet_size, trk_memory, search_range, trk_algo, fps]
-    with open('Default_values.pickle', 'wb') as f:
+    Default_values = [
+        pixel_size,
+        object_area,
+        full_obj_data,
+        sheet_size,
+        trk_memory,
+        search_range,
+        trk_algo,
+        fps,
+    ]
+    with open("Default_values.pickle", "wb") as f:
         pickle.dump(Default_values, f)
 
     # Folder creation and changing cwd
     try:
-        dir_name = str(chosen_dir_name) + ' - Analyzed Files'
+        dir_name = str(chosen_dir_name) + " - Analyzed Files"
         current_dir = os.getcwd()
         new_dir = current_dir + "\\" + dir_name
         os.mkdir(new_dir)
@@ -229,23 +253,28 @@ if __name__ == '__main__':
 
     except FileExistsError:
         showinfo(
-            "Error", "Folder already exists!\nPlease delete or move the folder and try again.")
+            "Error",
+            "Folder already exists!\nPlease delete or move the folder and try again.",
+        )
         exit()
 
-# If the user closes the window, this handles it & closes the program
+    # If the user closes the window, this handles it & closes the program
     try:
         threshold_value = threshold_value_testing(filepath)
     except:
-        showinfo(title='Program Closed',
-                 message='Goodbye, have a good day! :)')
+        showinfo(title="Program Closed", message="Goodbye, have a good day! :)")
         exit()
 
     # Progress bar design (nothing super cool/ interesting)
     list_len = len(filepath)
 
     root = tk.Tk()
-    root.title('Progress Bar')
-    root.geometry('300x150')
+    root.title("Progress Bar")
+    root.geometry("300x150")
+    style = ThemedStyle(root)
+    style.set_theme("equilux")
+    root.configure(bg="#464646")
+
     frame = ttk.Frame(root)
     frame.grid(column=0, row=1, padx=0, pady=2)
 
@@ -258,17 +287,19 @@ if __name__ == '__main__':
     progress = tk.StringVar()
     items = tk.StringVar(value=str(list_len))
 
-    prgbr_title = ttk.Label(frame_2,
-                            text="Total Progress: \nThresholding & Saving Files! :)").grid(column=0, row=0, padx=1, pady=1)
+    prgbr_title = ttk.Label(
+        frame_2, text="Total Progress: \nThresholding & Saving Files! :)"
+    ).grid(column=0, row=0, padx=1, pady=1)
 
-    prgbr_progress = ttk.Label(
-        frame, textvariable=progress).grid(column=0, row=0, padx=1, pady=3)
+    prgbr_progress = ttk.Label(frame, textvariable=progress).grid(
+        column=0, row=0, padx=1, pady=3
+    )
 
-    of_label = ttk.Label(frame, text="out of ").grid(
-        column=1, row=0, padx=1, pady=3)
+    of_label = ttk.Label(frame, text="out of ").grid(column=1, row=0, padx=1, pady=3)
 
     prgbr_total = ttk.Label(frame, textvariable=items).grid(
-        column=2, row=0, padx=1, pady=3)
+        column=2, row=0, padx=1, pady=3
+    )
 
     thresholding_files(filepath, threshold_value, progress, root)
 
@@ -286,19 +317,26 @@ if __name__ == '__main__':
     # By finding all filepaths that end in .tif in the working directory (where the thresholded videos are saved)
     # This function is able to automatically find the filepaths for the newly thresholded videos
     for x in os.listdir():
-        if x.endswith('.tif'):
+        if x.endswith(".tif"):
             thresholded_tifs.append(x)
 
     # Breaking the list into nested lists, to separate sample condition data into different sheets
-    split_list = [thresholded_tifs[i:i + sheet_size]
-                  for i in range(0, len(thresholded_tifs), sheet_size)]
+    split_list = [
+        thresholded_tifs[i : i + sheet_size]
+        for i in range(0, len(thresholded_tifs), sheet_size)
+    ]
 
     # Same progress bar code from above
     list_len = len(thresholded_tifs)
 
     root = tk.Tk()
-    root.title('Progress Bar')
-    root.geometry('300x150')
+    root.title("Progress Bar")
+    root.geometry("300x150")
+
+    style = ThemedStyle(root)
+    style.set_theme("equilux")
+    root.configure(bg="#464646")
+
     frame = ttk.Frame(root)
     frame.grid(column=0, row=1, padx=0, pady=2)
 
@@ -311,28 +349,28 @@ if __name__ == '__main__':
     progress = tk.IntVar(frame_2)
     items = tk.StringVar(value=str(list_len))
 
-    prgbr_title = ttk.Label(frame_2,
-                            text="Total Progress: \nTracking & Saving Files! :)").grid(column=0, row=0, padx=1, pady=1)
+    prgbr_title = ttk.Label(
+        frame_2, text="Total Progress: \nTracking & Saving Files! :)"
+    ).grid(column=0, row=0, padx=1, pady=1)
 
-    prgbr_progress = ttk.Label(
-        frame, textvariable=progress).grid(column=0, row=0, padx=1, pady=3)
+    prgbr_progress = ttk.Label(frame, textvariable=progress).grid(
+        column=0, row=0, padx=1, pady=3
+    )
 
-    of_label = ttk.Label(frame, text="out of ").grid(
-        column=1, row=0, padx=1, pady=3)
+    of_label = ttk.Label(frame, text="out of ").grid(column=1, row=0, padx=1, pady=3)
 
     prgbr_total = ttk.Label(frame, textvariable=items).grid(
-        column=2, row=0, padx=1, pady=3)
+        column=2, row=0, padx=1, pady=3
+    )
 
     # This function takes care of all the tracking, linking, data analysis, and data formatting
     tracking_data_analysis(split_list, progress, root, Default_values)
 
-
-# Incase user clicks the red x and wants to shutdown the program.
+    # Incase user clicks the red x and wants to shutdown the program.
     root.protocol("WM_DELETE_WINDOW", on_closing)
 
-    showinfo(title="Finished",
-             message=f"All Files Tracked and Saved")
+    showinfo(title="Finished", message=f"All Files Tracked and Saved")
 
-# Opens folder where files were saved
+    # Opens folder where files were saved
     folder = os.getcwd()
     os.startfile(folder)
