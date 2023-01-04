@@ -70,13 +70,13 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
             # This next section is getting the speed and positional data about the objects
             # The data is formatted as follows (example data):
             #
-            # 1st X | 1st Y | First Frame | {reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 | ect..
+            # 1st X | 1st Y | First Frame | Distance |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 | ect..
             # ---------------------------------------------------------------------------------------------------------
-            #  150  |  150  |      0      | These sections are the instantaneous speed of the object at each frame
-            #  200  |  200  |      0      |    1.2 (Microns/sec) |          2.3         |            0.5       |
-            #  168  |  15   |      2      |         0.3          |          0.8         |            1.2       |
+            #  150  |  150  |      0      |   18.6   |These sections are the instantaneous speed of the object at each frame
+            #  200  |  200  |      0      |   8.2    |  1.2 (Microns/sec)  |          2.3         |            0.5       |
+            #  168  |  15   |      2      |   1.55   |         0.3         |          0.8         |            1.2       |
 
-            # (dd_values means desired_displacement values)
+            # dd_values stands for desired_displacement values
             dd_values = linked_obj[["particle", "frame", "x", "y"]]
             total_objs = dd_values["particle"].iloc[-1]
             reciprocol_fps = 1 / fps
@@ -84,7 +84,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
             # The workflow for this loop is to separate the data for each particle into a new dataframe,
             # find the initial object coordinates & first frame (so you can go back and locate the object).
             #
-            # Then for each frame, the locations and frame numbers are used to find the change in distance
+            # Then for each frame, the object positions and frame numbers are used to find the change in distance
             # from frame to frame. This is then converted to an instantaneous velocity by multiplying by
             # the pixel size and dividing by the reciprocol fps, and this number is then appended to the list.
 
@@ -154,6 +154,14 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
             desired_values = linked_obj[["frame", "particle", "mass"]]
             total_objs = desired_values["particle"].iloc[-1]
 
+            # This is how the obj_size DataFrame is formatted for the size of objets and file information
+            # Average Obj Size | Std of Obj Size | File | Particle |
+            # ----------------------------------------------------------
+            #       14.86      |       7.38      |   1  |     0    |
+            #       33.33      |       9.24      |   1  |     1    |
+            #       55.06      |       5.18      |   1  |     2    |
+            #       ect...     |       ect...    |ect...|   ect... |
+
             # Loop to calculate mean and std for the particle size * brightness, which is converted into pixels by x/255
             for object in range(0, int(total_objs)):
 
@@ -175,7 +183,18 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
                 obj_size_list, columns=["Average Obj Size", "Std of Obj Size"]
             )
 
-            output_df = obj_size_df.join(displacement_df)
+            output_df = obj_size_df.join(
+                displacement_df
+            )  # This is joining the two dataframes together, for the final/ output DataFrame
+
+            # What's happening in the .join() function:
+            # Average Obj Size | Std of Obj Size | File | Particle |  +  | 1st X | 1st Y | First Frame | Distance |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 |
+            # -----------------------------------------------------|  +  |----------------------------------------------------------------------------------------------------------------------
+            #       14.86      |       7.38      |   1  |     0    |  +  |  150  |  150  |      0      |   18.6   |These sections are the instantaneous speed of the object at each frame
+            #       33.33      |       9.24      |   1  |     1    |  +  |  200  |  200  |      0      |   8.2    |  1.2 (Microns/sec)  |          2.3         |            0.5       |
+            #       55.06      |       5.18      |   1  |     2    |  +  |  168  |  15   |      2      |   1.55   |         0.3         |          0.8         |            1.2       |
+            #       ect...     |       ect...    |ect...|   ect... |  +  | ect...| ect...|    ect...   |  ect...  |       ect...        |         ect...       |           ect...     |
+
             final_df = pd.concat([final_df, output_df])
 
         # Saving as excel (The automatic naming is based on the naming convention below)
