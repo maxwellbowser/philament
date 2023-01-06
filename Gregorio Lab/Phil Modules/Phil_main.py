@@ -52,10 +52,10 @@ if __name__ == "__main__":
 
     # This will check if the default values have already been made
     # If not, it sets them to our preset values and then creates a default_value file
-    settings_test = os.path.exists("Default_values.pickle")
+    settings_test = os.path.exists("Settings.pickle")
 
     if settings_test == True:
-        with open("Default_values.pickle", "rb") as f:
+        with open("Settings.pickle", "rb") as f:
             past_values = pickle.load(f)
         pixel_size = past_values[0]
         object_area = past_values[1]
@@ -88,7 +88,7 @@ if __name__ == "__main__":
             fps,
         ]
 
-        with open("Default_values.pickle", "wb") as f:
+        with open("Settings.pickle", "wb") as f:
             pickle.dump(Default_values, f)
 
     # Setting up root & frames for the starting GUI
@@ -240,7 +240,7 @@ if __name__ == "__main__":
         trk_algo,
         fps,
     ]
-    with open("Default_values.pickle", "wb") as f:
+    with open("Settings.pickle", "wb") as f:
         pickle.dump(Default_values, f)
 
     # Folder creation and changing cwd
@@ -256,6 +256,8 @@ if __name__ == "__main__":
             "Error",
             "Folder already exists!\nPlease delete or move the folder and try again.",
         )
+        folder = os.getcwd()
+        os.startfile(folder)
         exit()
 
     # If the user closes the window, this handles it & closes the program

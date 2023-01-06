@@ -202,10 +202,8 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
 
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7:-7]
-        final_df.to_excel(f"{proper_name}.xlsx", sheet_name="Analyzed Data", index=0)
+        final_df.to_csv(f"{proper_name}.csv", index=0)
 
         # Full object data option
         if full_obj_data == True:
-            full_obj_df.to_excel(
-                f"{proper_name}-Full Object Data.xlsx", sheet_name="Analyzed Data"
-            )
+            full_obj_df.to_csv(f"{proper_name}-Full Object Data.csv")
