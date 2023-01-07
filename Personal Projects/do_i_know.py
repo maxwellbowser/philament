@@ -1,13 +1,25 @@
 # Making CLI Address Book
-import pickle
+from pickle import dump, load
 from os import system
 from time import sleep
 
+heading = """
+                 Address Book
+-----------------------------------------------
+For List of Commands, type 'help'
+"""
+
+
 # attempt number one
+def loading():
+    sleep(1)
+    print("Going back to main menu...")
+    sleep(2.5)
+
 
 # Apologies for the shit ton of repeating code, I don't know how to do this better :'(
-def add_contact(current_contacts: list) -> list:
-    system("cls")
+def add_contact(address_book: list) -> list:
+
     print("To skip any of the field entries, just enter 'skip'")
 
     print("Enter first name:")
@@ -41,9 +53,9 @@ def add_contact(current_contacts: list) -> list:
     system("cls")
 
     adding_contact = [fName, lName, address, phone, email]
-    current_contacts.append(adding_contact)
+    address_book.append(adding_contact)
     with open("contactos.pickle", "wb") as writer:
-        pickle.dump(current_contacts, writer)
+        dump(address_book, writer)
 
     print(f"Added {adding_contact[0]} to Address Book!")
     sleep(1)
@@ -51,8 +63,15 @@ def add_contact(current_contacts: list) -> list:
     sleep(2.5)
 
 
-def edit_contact():
-    pass
+def edit_contact(address_book):
+    for list in address_book:
+        print(f"Contact {list[0]}")
+
+        print(address_book.index(list))
+
+        if address_book.index(list) > 2:
+            print("too many")
+    input()
 
 
 def delete_contact():
@@ -63,8 +82,32 @@ def show_contacts():
     pass
 
 
-def reset_book():
-    pass
+def reset_book(address_book):
+
+    print(heading)
+    print("Are you SURE that you want to delete the entire address book? (y\\n)")
+    answer = input("cls").lower().strip()
+
+    if answer != "y":
+        return
+    system("cls")
+
+    print(heading)
+    print("Type 'deleteAddressBook' to confirm (capitalization doesn't count):")
+    answer = input(">>").lower().strip()
+
+    if answer != "deleteaddressbook":
+        return
+
+    system("cls")
+    print(heading)
+
+    address_book = []
+    with open("contactos.pickle", "wb") as writer:
+        dump(address_book, writer)
+
+    print("Address book has been cleared!")
+    loading()
 
 
 def search_contacts():
@@ -73,25 +116,25 @@ def search_contacts():
 
 try:
     with open("contactos.pickle", "rb") as reader:
-        hello = pickle.load(reader)
+        book = load(reader)
 
 except FileNotFoundError:
-    hello = []
+    book = []
+
 
 # Running loop:
+########################################################
 while True:
     system("cls")
-    print(
-        """
-                 Address Book
------------------------------------------------
-For List of Commands, type 'help'
-"""
-    )
+    print(heading)
+
     commands = input(">>").strip().lower()
 
+    # remember to make all the commands start with system('cls')
+    # just for consistencys sake!
+
     if commands == "add":
-        add_contact(hello)
+        add_contact(book)
 
     elif commands == "help":
         system("cls")
@@ -110,11 +153,19 @@ exit -> exit program
 
         input("Hit enter to return to main menu\n")
 
+    elif commands == "edit":
+        system("cls")
+        edit_contact(book)
+
     elif commands == "exit":
         system("cls")
         print("Goodbye!")
         sleep(1)
         exit()
+
+    elif commands == "reset":
+        system("cls")
+        reset_book(book)
 
     else:
         print("sorry that's not a command, please enter help for a list of commands")
