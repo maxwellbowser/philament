@@ -6,11 +6,10 @@ from time import sleep
 heading = """
                  Address Book
 -----------------------------------------------
-For List of Commands, type 'help'
 """
+help_text = "For List of Commands, type 'help'"
 
 
-# attempt number one
 def loading():
     sleep(1)
     print("Going back to main menu...")
@@ -58,12 +57,14 @@ def add_contact(address_book: list) -> list:
         dump(address_book, writer)
 
     print(f"Added {adding_contact[0]} to Address Book!")
-    sleep(1)
-    print("Going back to main menu...")
-    sleep(2.5)
+    loading()
 
 
 def edit_contact(address_book):
+    book_size = len(address_book)
+    print(book_size)
+    input()
+
     for list in address_book:
         print(f"Contact {list[0]}")
 
@@ -86,7 +87,7 @@ def reset_book(address_book):
 
     print(heading)
     print("Are you SURE that you want to delete the entire address book? (y\\n)")
-    answer = input("cls").lower().strip()
+    answer = input(">>").lower().strip()
 
     if answer != "y":
         return
@@ -126,7 +127,7 @@ except FileNotFoundError:
 ########################################################
 while True:
     system("cls")
-    print(heading)
+    print(heading + help_text)
 
     commands = input(">>").strip().lower()
 
@@ -142,16 +143,16 @@ while True:
             """
 Command List:
 add -> add new contact
-edit -> edit contact
-delete -> delete contact
-search -> search for contacts
-show -> display all contacts
+edit -> edit contact (WIP)
+delete -> delete contact (WIP)
+search -> search for contacts (WIP)
+show -> display all contacts (WIP)
 reset -> clear entire address book
 exit -> exit program
 """
         )
 
-        input("Hit enter to return to main menu\n")
+        input("Hit enter to return to the main menu\n")
 
     elif commands == "edit":
         system("cls")
@@ -168,5 +169,5 @@ exit -> exit program
         reset_book(book)
 
     else:
-        print("sorry that's not a command, please enter help for a list of commands")
-        sleep(3)
+        print("Sorry, that's not a command!")
+        sleep(1)
