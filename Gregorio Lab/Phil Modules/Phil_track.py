@@ -67,6 +67,9 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
             linked_obj = tp.link_df(f, search_range, memory=trk_memory)
             linked_obj = linked_obj.sort_values(by=["particle", "frame"])
 
+            # Uncomment this to get plots of object paths (ruins automation workflow)
+            # tp.plot_traj(linked_obj)
+
             # This next section is getting the speed and positional data about the objects
             # The data is formatted as follows (example data):
             #

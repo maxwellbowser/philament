@@ -16,39 +16,83 @@ def loading():
     sleep(2.5)
 
 
+def show_info(info_list):
+    for name in info_list:
+        print(f"-{name}")
+
+
+def display_contacts(address_book):
+    system("cls")
+    for contact in range(0, len(address_book)):
+        print(
+            f"{contact+1} | Name: {address_book[contact][0]} {address_book[contact][1]}"
+        )
+    input(">>")
+
+
+def backwards_adding():
+    # Here the order im thinking but im feeling too lazy rn
+
+    # take list as input, and use the length to determine what step its in, if len = 1
+    # Youre at the second step, ie last name
+
+    # use.pop() to just get rid of the last one, and then just return
+    # and make sure the variable assigned to this function replaces
+    # the existing list
+
+    # Thats it, and then just do it over again for each step, but where you take input again
+    # IDK how to handle going back mutiple times
+    pass
+
+
 # Apologies for the shit ton of repeating code, I don't know how to do this better :'(
 def add_contact(address_book: list) -> list:
 
     print("To skip any of the field entries, just enter 'skip'")
+    input_info = []
 
     print("Enter first name:")
     fName = input().strip()
     if fName.lower().strip() == "skip":
         fName = None
+
+    input_info.append(fName)
     system("cls")
 
+    show_info(input_info)
     print("Enter last name:")
     lName = input().strip()
     if lName.lower().strip() == "skip":
         lName = None
+
+    input_info.append(lName)
     system("cls")
 
+    show_info(input_info)
     print("Enter address:")
     address = input().strip()
     if address.lower().strip() == "skip":
         address = None
+
+    input_info.append(address)
     system("cls")
 
+    show_info(input_info)
     print("Enter phone number (no dashes or spaces):")
     phone = input().strip()
     if phone.lower().strip() == "skip":
         phone = None
+
+    input_info.append(phone)
     system("cls")
 
+    show_info(input_info)
     print("Enter email address:")
     email = input().strip()
     if email.lower().strip() == "skip":
         email = None
+
+    input_info.append(email)
     system("cls")
 
     adding_contact = [fName, lName, address, phone, email]
@@ -61,25 +105,28 @@ def add_contact(address_book: list) -> list:
 
 
 def edit_contact(address_book):
-    book_size = len(address_book)
-    print(book_size)
-    input()
 
-    for list in address_book:
-        print(f"Contact {list[0]}")
+    system("cls")
+    print(
+        heading + "Type first name of desired contact, otherwise type 'show contacts'"
+    )
+    search = input(">>").lower()
+    search = search.replace(" ", "")
+    print(search)
 
-        print(address_book.index(list))
+    if search == "showcontacts":
+        display_contacts(address_book)
+        print("Type first name of desired contact")
+        search = input(">>")
 
-        if address_book.index(list) > 2:
-            print("too many")
+    for contact in address_book:
+        if contact[0] == search:
+            print(contact)
+
     input()
 
 
 def delete_contact():
-    pass
-
-
-def show_contacts():
     pass
 
 
@@ -131,7 +178,7 @@ while True:
 
     commands = input(">>").strip().lower()
 
-    # remember to make all the commands start with system('cls')
+    # remember to make all the command elif start with system('cls')
     # just for consistencys sake!
 
     if commands == "add":
@@ -158,6 +205,9 @@ exit -> exit program
         system("cls")
         edit_contact(book)
 
+    elif commands == "show":
+        system("cls")
+        display_contacts(book)
     elif commands == "exit":
         system("cls")
         print("Goodbye!")
