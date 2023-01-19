@@ -1,5 +1,5 @@
 # This program is meant to take input of prerecorded .tif videos of bright objects on a dark background
-# and output thresholded .tif videos, along with an excel sheet of the frame to frame displacement of each
+# and output thresholded .tif videos, along with a csv file with the frame to frame displacements of each
 # object for all of the imported videos!
 
 # All code and comments written by Ryan Bowser (@maxwellbowser on github, ryanbowser@arizona.edu)

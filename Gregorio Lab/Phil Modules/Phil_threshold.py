@@ -161,5 +161,5 @@ def thresholding_files(filepath, threshold_value, progress, root):
 
     # There were a few times I got a random NameError, so added this
     except NameError:
-        showinfo(title="Error", message=f"Sorry, Something happened")
+        showinfo(title="Error", message=f"Error 001")
         exit()
