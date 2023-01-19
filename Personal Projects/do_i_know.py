@@ -97,6 +97,7 @@ def add_contact(address_book: list) -> list:
 
     adding_contact = [fName, lName, address, phone, email]
     address_book.append(adding_contact)
+
     with open("contactos.pickle", "wb") as writer:
         dump(address_book, writer)
 
@@ -105,6 +106,8 @@ def add_contact(address_book: list) -> list:
 
 
 def edit_contact(address_book):
+    repeat = False
+    num_repeats = 0
 
     system("cls")
     print(
@@ -112,16 +115,28 @@ def edit_contact(address_book):
     )
     search = input(">>").lower()
     search = search.replace(" ", "")
-    print(search)
 
     if search == "showcontacts":
         display_contacts(address_book)
         print("Type first name of desired contact")
-        search = input(">>")
+        search = input(">>").lower().strip()
 
     for contact in address_book:
-        if contact[0] == search:
-            print(contact)
+        if contact[0].lower() == search and repeat == False:
+            edit_index = address_book.index(contact)
+            repeat = True
+            num_repeats += 1
+
+        elif contact[0].lower() == search and repeat == True:
+            num_repeats += 1
+
+    if repeat == True:
+        system("cls")
+        print(
+            heading
+            + f"There are {num_repeats} contacts with that name, please enter last name or 'show contacts':"
+        )
+        input(">>")
 
     input()
 
