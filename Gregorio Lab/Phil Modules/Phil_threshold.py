@@ -65,9 +65,9 @@ def threshold_value_testing(List_of_Filepaths):
         window.title("Checking Thresholding Value")
         window.resizable(False, False)
         window.geometry("425x250")
-        style = ThemedStyle(window)
-        style.set_theme("equilux")
-        window.configure(bg="#464646")
+        # style = ThemedStyle(window)
+        # style.set_theme("equilux")
+        # window.configure(bg="#464646")
 
         thresh_check_frame = ttk.Frame(window, padding="5 5 10 10")
         thresh_check_frame.grid(column=0, row=0)

@@ -97,9 +97,11 @@ if __name__ == "__main__":
     root.geometry("540x375")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
-    style = ThemedStyle(root)
-    style.set_theme("equilux")
-    root.configure(bg="#464646")
+
+    # Style Things, I wanna mess with this :(
+    # style = ThemedStyle(root)
+    # style.set_theme("equilux")
+    # root.configure(bg="#464646")
 
     button_frame = ttk.Frame(root, padding="5 5 10 10")
     button_frame.grid(column=1, row=1)
@@ -121,12 +123,12 @@ if __name__ == "__main__":
     tk_date = tk.StringVar(value=todays_date)
 
     # Labels being made
-    ttk.Label(values_frame, text="Pixel size:", anchor="w").grid(
+    ttk.Label(values_frame, text="Pixel size (Microns):", anchor="w").grid(
         column=0, row=0, padx=5, pady=5, sticky="W"
     )
     ttk.Label(
         values_frame,
-        text="Object area (In pixels):\nMUST be an ODD integer",
+        text="Object area (In pixels):\nMUST be an odd integer",
         anchor="w",
     ).grid(column=0, row=1, padx=5, pady=5, sticky="W")
     ttk.Label(values_frame, text="# of files per condition:", anchor="w").grid(
@@ -273,9 +275,9 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Progress Bar")
     root.geometry("300x150")
-    style = ThemedStyle(root)
-    style.set_theme("equilux")
-    root.configure(bg="#464646")
+    # style = ThemedStyle(root)
+    # style.set_theme("equilux")
+    # root.configure(bg="#464646")
 
     frame = ttk.Frame(root)
     frame.grid(column=0, row=1, padx=0, pady=2)
@@ -335,9 +337,10 @@ if __name__ == "__main__":
     root.title("Progress Bar")
     root.geometry("300x150")
 
-    style = ThemedStyle(root)
-    style.set_theme("equilux")
-    root.configure(bg="#464646")
+    # style = ThemedStyle(root)
+    # style.set_theme("equilux")
+    # style.configure(background="white")
+    # root.configure(bg="#464646")
 
     frame = ttk.Frame(root)
     frame.grid(column=0, row=1, padx=0, pady=2)

@@ -68,7 +68,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
             linked_obj = linked_obj.sort_values(by=["particle", "frame"])
 
             # Uncomment this to get plots of object paths (ruins automation workflow)
-            # tp.plot_traj(linked_obj)
+            tp.plot_traj(linked_obj)
 
             # This next section is getting the speed and positional data about the objects
             # The data is formatted as follows (example data):
@@ -102,6 +102,8 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
                     particle_num = pythag_df["particle"].iloc[0]
                     last_x = pythag_df["x"].iloc[-1]
                     last_y = pythag_df["y"].iloc[-1]
+
+                    # In plain english, this is pythagorean theorem, (a^2 + b^2) = c^2
                     distance = (
                         sqrt(((first_x - last_x) ** 2) + (first_y - last_y) ** 2)
                         * pixel_size
