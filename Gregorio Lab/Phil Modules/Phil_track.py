@@ -26,7 +26,7 @@ def column_naming(df_length, file_fps):
     return df_dict
 
 
-def tracking_data_analysis(split_list, progress, root, settings_list):
+def tracking_data_analysis(split_list, progress, root, settings_list, name_indices):
 
     # Tracking the objects & saving to excel sheet (does i .tif videos at a time, specified by sheet_size)
     pixel_size = settings_list[0]
@@ -52,7 +52,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
 
             # Specifing which movie the data came from
             filename = os.path.basename(split_list[j][i])
-            file_num = int(filename[-6:-4])
+            file_num = int(filename[name_indices[2] : name_indices[3]])
 
             obj_size_list = []
 
@@ -206,7 +206,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list):
         # Naming convention: Thresh-XXXXXXXXX-01.tif
 
         filename = os.path.basename(split_list[j][0])
-        proper_name = filename[7:-7]
+        proper_name = filename[name_indices[0] : name_indices[1]]
         final_df.to_csv(f"{proper_name}.csv", index=0)
 
         # Full object data option

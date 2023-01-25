@@ -50,6 +50,19 @@ if __name__ == "__main__":
 
         root.destroy()
 
+    def Naming_Indices(naming_input):
+        slash_positions = []
+
+        test_lst = list(naming_input)
+
+        counter = 0
+        for char in test_lst:
+            if char == "/" or char == "|":
+                slash_positions.append(counter)
+
+            counter += 1
+        return slash_positions
+
     # This will check if the default values have already been made
     # If not, it sets them to our preset values and then creates a default_value file
     settings_test = os.path.exists("Settings.pickle")
@@ -65,6 +78,7 @@ if __name__ == "__main__":
         search_range = past_values[5]
         trk_algo = past_values[6]
         fps = past_values[7]
+        naming_convention = past_values[8]
 
     else:
         pixel_size = 0.139
@@ -75,6 +89,7 @@ if __name__ == "__main__":
         search_range = 35
         trk_algo = "numba"
         fps = 5
+        naming_convention = "/ActinLmod/-|01|"
 
         # This is the order that the values are saved
         Default_values = [
@@ -86,6 +101,7 @@ if __name__ == "__main__":
             search_range,
             trk_algo,
             fps,
+            naming_convention,
         ]
 
         with open("Settings.pickle", "wb") as f:
@@ -94,7 +110,7 @@ if __name__ == "__main__":
     # Setting up root & frames for the starting GUI
     root = tk.Tk()
     root.title("Welcome to Philament Tracker!")
-    root.geometry("540x375")
+    root.geometry("650x425")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
 
@@ -121,6 +137,7 @@ if __name__ == "__main__":
     tk_search_range = tk.IntVar(value=search_range)
     tk_fps = tk.IntVar(value=fps)
     tk_date = tk.StringVar(value=todays_date)
+    tk_file_name = tk.StringVar(value=naming_convention)
 
     # Labels being made
     ttk.Label(values_frame, text="Pixel size (Microns):", anchor="w").grid(
@@ -146,6 +163,11 @@ if __name__ == "__main__":
     ttk.Label(
         values_frame, text="Path linking strategy:\n(Numba is recommended)", anchor="w"
     ).grid(column=0, row=6, padx=5, pady=5, sticky="W")
+    ttk.Label(
+        values_frame,
+        text="Naming Convention:\nSurround file name with '/' & file number with '|'",
+        anchor="w",
+    ).grid(column=0, row=7, padx=5, pady=5, sticky="W")
     ttk.Label(options_frame, text="Desired Folder Name:", anchor="n").grid(
         column=0, row=1, padx=5, pady=5, sticky="N"
     )
@@ -179,6 +201,9 @@ if __name__ == "__main__":
     ttk.Entry(values_frame, textvariable=tk_fps).grid(column=1, row=5, padx=5, pady=5)
     menubut = ttk.Menubutton(values_frame, text="Select One")
     menubut.grid(column=1, row=6, padx=5, pady=5)
+    ttk.Entry(values_frame, textvariable=tk_file_name).grid(
+        column=1, row=7, padx=5, pady=5
+    )
 
     file = tk.Menu(menubut, tearoff=0)
     menubut["menu"] = file
@@ -227,6 +252,7 @@ if __name__ == "__main__":
         search_range = tk_search_range.get()
         fps = tk_fps.get()
         chosen_dir_name = tk_date.get()
+        naming_convention = tk_file_name.get()
     except:
         showinfo(
             title="Whoops!", message="Error: Invalid Input\nPlease restart program"
@@ -241,10 +267,12 @@ if __name__ == "__main__":
         search_range,
         trk_algo,
         fps,
+        naming_convention,
     ]
     with open("Settings.pickle", "wb") as f:
         pickle.dump(Default_values, f)
 
+    name_index = Naming_Indices(naming_convention)
     # Folder creation and changing cwd
     try:
         dir_name = str(chosen_dir_name) + " - Analyzed Files"
@@ -369,7 +397,7 @@ if __name__ == "__main__":
     )
 
     # This function takes care of all the tracking, linking, data analysis, and data formatting
-    tracking_data_analysis(split_list, progress, root, Default_values)
+    tracking_data_analysis(split_list, progress, root, Default_values, name_index)
 
     # Incase user clicks the red x and wants to shutdown the program.
     root.protocol("WM_DELETE_WINDOW", on_closing)
