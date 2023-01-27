@@ -17,6 +17,7 @@ from datetime import date
 import multiprocessing
 from tkinter import filedialog as fd
 import cv2
+import sys
 
 import tkinter as tk
 from ttkthemes import ThemedStyle
@@ -27,6 +28,7 @@ from Phil_track import *
 if __name__ == "__main__":
     # This line is neccesary for proper running after being compiled with pyinstaller
     multiprocessing.freeze_support()
+
     todays_date = date.today()
 
     # Handling user closing window, so that the program will end
@@ -34,7 +36,7 @@ if __name__ == "__main__":
     def on_closing():
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             root.destroy()
-            exit()
+            sys.exit()
 
     # Function for opening browse window selecting files
     def select_files():
@@ -50,17 +52,50 @@ if __name__ == "__main__":
 
         root.destroy()
 
+    """
+    Naming_Indices:
+    Input: naming_input needs to be a string, containing exactly 2 "|" characters
+    Output: slash_positions is a tuple, containing the 2 reverse indices of the "|" contained text
+    
+    This function takes in naming_input returns the reverse indices of whatever is contained between
+    the two lines. I chose to do reverse indices, because our file naming system will sometimes have
+    different length names (1Lmod-01, 10Lmod-01, 100Lmod-01), and forward indexing would get messed
+    up.
+
+    Eventually, the selected file names will have -Thresh prefixes and .tif suffixes added.
+
+    e.g.
+    naming_input is "100-Tropomodulin|01|"
+    This means the normal filename would be "100-Tropomodulin01"
+    slash_positions = (-6, -4)
+    
+    So eventually, when filename = Thresh-100-Tropomodulin01.tif, 
+    filename[slash_positions[0]:slash_positions[1]] returns "01"       
+    """
+
     def Naming_Indices(naming_input):
         slash_positions = []
+        naming_input = "Thresh-" + naming_input + ".tif"
 
-        test_lst = list(naming_input)
+        test_list = list(naming_input)
 
         counter = 0
-        for char in test_lst:
-            if char == "/" or char == "|":
+        for char in test_list:
+            if char == "|":
                 slash_positions.append(counter)
 
             counter += 1
+
+        if len(slash_positions) > 2:
+            showinfo(
+                title="Naming Convention",
+                message="Please check naming convention, and only suround the file number with one '|' on each side.\ne.g. Filename-|02|",
+            )
+            sys.exit()
+        slash_positions = (
+            slash_positions[0] - len(naming_input) + 2,
+            slash_positions[1] - len(naming_input) + 1,
+        )
         return slash_positions
 
     # This will check if the default values have already been made
@@ -89,7 +124,7 @@ if __name__ == "__main__":
         search_range = 35
         trk_algo = "numba"
         fps = 5
-        naming_convention = "/ActinLmod/-|01|"
+        naming_convention = "ActinLmod-|01|"
 
         # This is the order that the values are saved
         Default_values = [
@@ -165,7 +200,7 @@ if __name__ == "__main__":
     ).grid(column=0, row=6, padx=5, pady=5, sticky="W")
     ttk.Label(
         values_frame,
-        text="Naming Convention:\nSurround file name with '/' & file number with '|'",
+        text="Naming Convention:\nSurround file number with '|'",
         anchor="w",
     ).grid(column=0, row=7, padx=5, pady=5, sticky="W")
     ttk.Label(options_frame, text="Desired Folder Name:", anchor="n").grid(
@@ -218,7 +253,7 @@ if __name__ == "__main__":
 
     def close_window():
         root.destroy()
-        exit()
+        sys.exit()
 
     # Making RadioButtons (would've made with a for loop to save space, but it
     # caused problems, and this is more readable anyways)
@@ -257,7 +292,7 @@ if __name__ == "__main__":
         showinfo(
             title="Whoops!", message="Error: Invalid Input\nPlease restart program"
         )
-        exit()
+        sys.exit()
     Default_values = [
         pixel_size,
         object_area,
@@ -288,14 +323,14 @@ if __name__ == "__main__":
         )
         folder = os.getcwd()
         os.startfile(folder)
-        exit()
+        sys.exit()
 
     # If the user closes the window, this handles it & closes the program
     try:
         threshold_value = threshold_value_testing(filepath)
     except:
         showinfo(title="Program Closed", message="Goodbye, have a good day! :)")
-        exit()
+        sys.exit()
 
     # Progress bar design (nothing super cool/ interesting)
     list_len = len(filepath)

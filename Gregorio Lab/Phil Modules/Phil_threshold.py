@@ -5,6 +5,7 @@ from ttkthemes import ThemedStyle
 from tkinter.messagebox import showinfo
 import os
 import os.path
+import sys
 import cv2
 
 from numpy import array
@@ -37,7 +38,7 @@ def threshold_value_testing(List_of_Filepaths):
         thresh_values = []
     except:
         print("Please re-run program, and make sure to select files!")
-        exit()
+        sys.exit()
 
     # running the thresholding picker gui
     for i in range(0, len(rand_file_num)):
@@ -162,4 +163,4 @@ def thresholding_files(filepath, threshold_value, progress, root):
     # There were a few times I got a random NameError, so added this
     except NameError:
         showinfo(title="Error", message=f"Error 001")
-        exit()
+        sys.exit()

@@ -52,7 +52,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list, name_indic
 
             # Specifing which movie the data came from
             filename = os.path.basename(split_list[j][i])
-            file_num = int(filename[name_indices[2] : name_indices[3]])
+            file_num = int(filename[name_indices[0] : name_indices[1]])
 
             obj_size_list = []
 
@@ -68,7 +68,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list, name_indic
             linked_obj = linked_obj.sort_values(by=["particle", "frame"])
 
             # Uncomment this to get plots of object paths (ruins automation workflow)
-            tp.plot_traj(linked_obj)
+            # tp.plot_traj(linked_obj)
 
             # This next section is getting the speed and positional data about the objects
             # The data is formatted as follows (example data):
@@ -206,7 +206,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list, name_indic
         # Naming convention: Thresh-XXXXXXXXX-01.tif
 
         filename = os.path.basename(split_list[j][0])
-        proper_name = filename[name_indices[0] : name_indices[1]]
+        proper_name = filename[7 : name_indices[0]]
         final_df.to_csv(f"{proper_name}.csv", index=0)
 
         # Full object data option
