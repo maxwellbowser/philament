@@ -2,6 +2,7 @@
 from pickle import dump, load
 from os import system
 from time import sleep
+from sys import exit
 
 heading = """
                  Address Book
@@ -13,7 +14,7 @@ help_text = "For List of Commands, type 'help'"
 def loading():
     sleep(1)
     print("Going back to main menu...")
-    sleep(2.5)
+    sleep(2)
 
 
 def show_info(info_list):
@@ -28,6 +29,13 @@ def display_contacts(address_book):
             f"{contact+1} | Name: {address_book[contact][0]} {address_book[contact][1]}"
         )
     input(">>")
+
+
+def repeat_name(address_book, name_locations):
+    names = []
+    for i in name_locations:
+        names.append(address_book[i])
+    print(names)
 
 
 def backwards_adding():
@@ -52,17 +60,22 @@ def add_contact(address_book: list) -> list:
     input_info = []
 
     print("Enter first name:")
-    fName = input().strip()
-    if fName.lower().strip() == "skip":
-        fName = None
+    fName = input().strip().lower()
+    if fName == "skip":
+        print('Sorry first name cannot be skipped')
+
+        system("cls")
+        print("Enter first name:")
+
+    fName = input().strip().lower()
 
     input_info.append(fName)
     system("cls")
 
     show_info(input_info)
     print("Enter last name:")
-    lName = input().strip()
-    if lName.lower().strip() == "skip":
+    lName = input().strip().lower()
+    if lName == "skip":
         lName = None
 
     input_info.append(lName)
@@ -70,8 +83,8 @@ def add_contact(address_book: list) -> list:
 
     show_info(input_info)
     print("Enter address:")
-    address = input().strip()
-    if address.lower().strip() == "skip":
+    address = input().strip().lower()
+    if address == "skip":
         address = None
 
     input_info.append(address)
@@ -79,8 +92,8 @@ def add_contact(address_book: list) -> list:
 
     show_info(input_info)
     print("Enter phone number (no dashes or spaces):")
-    phone = input().strip()
-    if phone.lower().strip() == "skip":
+    phone = input().strip().lower()
+    if phone == "skip":
         phone = None
 
     input_info.append(phone)
@@ -88,8 +101,8 @@ def add_contact(address_book: list) -> list:
 
     show_info(input_info)
     print("Enter email address:")
-    email = input().strip()
-    if email.lower().strip() == "skip":
+    email = input().strip().lower()
+    if email == "skip":
         email = None
 
     input_info.append(email)
@@ -105,9 +118,8 @@ def add_contact(address_book: list) -> list:
     loading()
 
 
-def edit_contact(address_book):
-    repeat = False
-    num_repeats = 0
+def delete_contact(address_book: list) -> list:
+    edit_index = []
 
     system("cls")
     print(
@@ -122,28 +134,29 @@ def edit_contact(address_book):
         search = input(">>").lower().strip()
 
     for contact in address_book:
-        if contact[0].lower() == search and repeat == False:
-            edit_index = address_book.index(contact)
-            repeat = True
-            num_repeats += 1
+        if contact[0].lower() == search:
+            edit_index.append(address_book.index(contact))
 
-        elif contact[0].lower() == search and repeat == True:
-            num_repeats += 1
+        elif search == "exit":
+            return
 
-    if repeat == True:
+    if len(edit_index) == 0:
         system("cls")
+
         print(
-            heading
-            + f"There are {num_repeats} contacts with that name, please enter last name or 'show contacts':"
+            f"{heading}Sorry, I couldn't find {search.capitalize()} in the address book!"
         )
-        input(">>")
+        loading()
+        return
 
-    input()
+    elif len(edit_index) > 1:
+        print(f"More than one {search.capitalize()} was found!")
+        edit_index = [repeat_name(address_book, edit_index)]
+        return
 
+    del address_book[edit_index[0]]
 
-def delete_contact():
-    pass
-
+    return address_book
 
 def reset_book(address_book):
 
@@ -160,6 +173,7 @@ def reset_book(address_book):
     answer = input(">>").lower().strip()
 
     if answer != "deleteaddressbook":
+        loading()
         return
 
     system("cls")
@@ -191,24 +205,25 @@ while True:
     system("cls")
     print(heading + help_text)
 
-    commands = input(">>").strip().lower()
+    command = input(">>").strip().lower()
 
     # remember to make all the command elif start with system('cls')
     # just for consistencys sake!
 
-    if commands == "add":
+    if command == "add":
         add_contact(book)
 
-    elif commands == "help":
+    elif command == "help":
         system("cls")
         print(
-            """
+            heading
+            + """
 Command List:
 add -> add new contact
-edit -> edit contact (WIP)
+edit -> edit contact
 delete -> delete contact (WIP)
 search -> search for contacts (WIP)
-show -> display all contacts (WIP)
+show -> display all contacts
 reset -> clear entire address book
 exit -> exit program
 """
@@ -216,23 +231,33 @@ exit -> exit program
 
         input("Hit enter to return to the main menu\n")
 
-    elif commands == "edit":
+    elif command == "edit":
         system("cls")
-        edit_contact(book)
+        delete_contact(book)
+        add_contact(book)
 
-    elif commands == "show":
+    elif command == "show":
         system("cls")
         display_contacts(book)
-    elif commands == "exit":
+
+    elif command == "exit":
         system("cls")
         print("Goodbye!")
         sleep(1)
         exit()
+    elif command == "delete":
+        system("cls")
+        book = delete_contact(book)
 
-    elif commands == "reset":
+    elif command == "reset":
         system("cls")
         reset_book(book)
 
+    elif command == "hello" or command == "hi":
+        system("cls")
+        print(f"{heading}Hello there! I hope you're having a good day ʕ•ᴥ•ʔﾉ♡")
+        sleep(3)
+
     else:
-        print("Sorry, that's not a command!")
+        print("Please enter a command!")
         sleep(1)
