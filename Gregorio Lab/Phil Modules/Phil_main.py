@@ -18,16 +18,18 @@ import multiprocessing
 from tkinter import filedialog as fd
 import cv2
 import sys
+from time import time
 
 import tkinter as tk
-from ttkthemes import ThemedStyle
-from Phil_threshold import *
-from Phil_track import *
+
+from phil_threshold import *
+from phil_track import *
 
 
 if __name__ == "__main__":
     # This line is neccesary for proper running after being compiled with pyinstaller
     multiprocessing.freeze_support()
+    start_time = int((time()) * 1000)
 
     todays_date = date.today()
 
@@ -54,19 +56,22 @@ if __name__ == "__main__":
 
     """
     Naming_Indices:
-    Input: naming_input needs to be a string, containing exactly 2 "|" characters
+    Input: naming_input is a string, containing exactly 2 "|" characters
     Output: slash_positions is a tuple, containing the 2 reverse indices of the "|" contained text
     
-    This function takes in naming_input returns the reverse indices of whatever is contained between
-    the two lines. I chose to do reverse indices, because our file naming system will sometimes have
-    different length names (1Lmod-01, 10Lmod-01, 100Lmod-01), and forward indexing would get messed
-    up.
+    This function takes in a string (naming_input), and returns the reverse indices of whatever is contained between
+    the two lines. I chose to do reverse indices, because our file naming system will increase the length of the file-
+    name in the front of the string, but the file number is in the back of the string.
+    e.g
+    1Lmod-01, 10Lmod-01, 100Lmod-01 | Back index is unaffected
 
-    Eventually, the selected file names will have -Thresh prefixes and .tif suffixes added.
+    Later in the script, the selected file names will have -Thresh prefixes and .tif suffixes added, which is accounted for
+    by adding them before finding the indices.
 
     e.g.
     naming_input is "100-Tropomodulin|01|"
     This means the normal filename would be "100-Tropomodulin01"
+    The future actual filename would be "Thresh-100-Tropomodulin01.tif"
     slash_positions = (-6, -4)
     
     So eventually, when filename = Thresh-100-Tropomodulin01.tif, 
@@ -92,6 +97,7 @@ if __name__ == "__main__":
                 message="Please check naming convention, and only suround the file number with one '|' on each side.\ne.g. Filename-|02|",
             )
             sys.exit()
+
         slash_positions = (
             slash_positions[0] - len(naming_input) + 2,
             slash_positions[1] - len(naming_input) + 1,
@@ -148,11 +154,6 @@ if __name__ == "__main__":
     root.geometry("650x425")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
-
-    # Style Things, I wanna mess with this :(
-    # style = ThemedStyle(root)
-    # style.set_theme("equilux")
-    # root.configure(bg="#464646")
 
     button_frame = ttk.Frame(root, padding="5 5 10 10")
     button_frame.grid(column=1, row=1)
@@ -338,9 +339,6 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Progress Bar")
     root.geometry("300x150")
-    # style = ThemedStyle(root)
-    # style.set_theme("equilux")
-    # root.configure(bg="#464646")
 
     frame = ttk.Frame(root)
     frame.grid(column=0, row=1, padx=0, pady=2)
@@ -400,11 +398,6 @@ if __name__ == "__main__":
     root.title("Progress Bar")
     root.geometry("300x150")
 
-    # style = ThemedStyle(root)
-    # style.set_theme("equilux")
-    # style.configure(background="white")
-    # root.configure(bg="#464646")
-
     frame = ttk.Frame(root)
     frame.grid(column=0, row=1, padx=0, pady=2)
 
@@ -437,8 +430,14 @@ if __name__ == "__main__":
     # Incase user clicks the red x and wants to shutdown the program.
     root.protocol("WM_DELETE_WINDOW", on_closing)
 
+    end_time = int((time()) * 1000)
+    elapsed_time = end_time - start_time
+    elapsed_time_sec = round(elapsed_time / 1000, 2)
+    elapsed_time_min = round(elapsed_time_sec / 60, 2)
+    print(f"Total time to run was {elapsed_time_sec} sec or {elapsed_time_min} min")
+
     showinfo(title="Finished", message=f"All Files Tracked and Saved")
 
-    # Opens folder where files were saved
+    # Opens folder where files were saved, so user can access them right away
     folder = os.getcwd()
     os.startfile(folder)

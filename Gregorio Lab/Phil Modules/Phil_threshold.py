@@ -1,7 +1,8 @@
 from statistics import mean
 import random
 from tkinter import ttk
-from ttkthemes import ThemedStyle
+
+# from ttkthemes import ThemedStyle
 from tkinter.messagebox import showinfo
 import os
 import os.path
