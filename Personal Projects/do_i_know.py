@@ -53,6 +53,13 @@ def backwards_adding():
     pass
 
 
+def admin_powers(address_book):
+    display_contacts(address_book)
+    x = input("Enter index to delete:")
+
+    pass
+
+
 # Apologies for the shit ton of repeating code, I don't know how to do this better :'(
 def add_contact(address_book: list) -> list:
 
@@ -60,16 +67,20 @@ def add_contact(address_book: list) -> list:
     input_info = []
 
     print("Enter first name:")
-    fName = input().strip().lower()
-    if fName == "skip":
-        print('Sorry first name cannot be skipped')
+    fName = input(">").strip().lower()
 
-        system("cls")
-        print("Enter first name:")
+    try:
+        while fName == "skip" or fName == "":
+            print("Sorry first name cannot be skipped or blank")
+            sleep(1)
+            system("cls")
+            print("Enter first name:")
+            fName = input().strip().lower()
 
-    fName = input().strip().lower()
+    except NameError:
+        pass
 
-    input_info.append(fName)
+    input_info.append(fName.capitalize())
     system("cls")
 
     show_info(input_info)
@@ -77,8 +88,11 @@ def add_contact(address_book: list) -> list:
     lName = input().strip().lower()
     if lName == "skip":
         lName = None
+        input_info.append(lName)
 
-    input_info.append(lName)
+    else:
+        input_info.append(lName.capitalize())
+
     system("cls")
 
     show_info(input_info)
@@ -158,6 +172,7 @@ def delete_contact(address_book: list) -> list:
 
     return address_book
 
+
 def reset_book(address_book):
 
     print(heading)
@@ -169,7 +184,7 @@ def reset_book(address_book):
     system("cls")
 
     print(heading)
-    print("Type 'deleteAddressBook' to confirm (capitalization doesn't count):")
+    print("Type 'deleteAddressBook' to confirm (capitalization doesn't matter):")
     answer = input(">>").lower().strip()
 
     if answer != "deleteaddressbook":
@@ -233,7 +248,7 @@ exit -> exit program
 
     elif command == "edit":
         system("cls")
-        delete_contact(book)
+        book = delete_contact(book)
         add_contact(book)
 
     elif command == "show":
@@ -257,6 +272,10 @@ exit -> exit program
         system("cls")
         print(f"{heading}Hello there! I hope you're having a good day ʕ•ᴥ•ʔﾉ♡")
         sleep(3)
+
+    elif command == "admin":
+        system("cls")
+        book = admin_powers(book)
 
     else:
         print("Please enter a command!")
