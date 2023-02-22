@@ -22,7 +22,7 @@ setup(
     # Project name:
     name="philament-tracker",
     # Packages to include in the distribution:
-    packages=find_packages("tkinter,opencv-python, "),
+    packages=find_packages("opencv-python"),
     # Project version number:
     version="1.0.0",
     # List a license for the project, eg. MIT License
@@ -41,9 +41,21 @@ setup(
     # Download Link from where the project can be downloaded from:
     download_url="",
     # List of keywords:
-    keywords=[],
+    keywords=[
+        "Tracking",
+        "Automation",
+        "Research",
+        "Biology",
+        "Actin",
+        "Myosin",
+        "In Vitro Motility",
+    ],
     # List project dependencies:
-    install_requires=[],
+    install_requires=[
+        "numpy",
+        "pandas",
+        "trackpy",
+    ],
     # https://pypi.org/classifiers/
     classifiers=[],
 )
