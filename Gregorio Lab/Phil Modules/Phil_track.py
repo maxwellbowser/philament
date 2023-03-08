@@ -5,6 +5,7 @@ import os.path
 
 import pandas as pd
 import tifffile as tif
+from numba import jit
 
 
 # to automatically adjust for users with higher fps or longer video sequences (we use 5 fps and 10 sec videos)
@@ -24,6 +25,30 @@ def column_naming(df_length, file_fps):
         recip_fps += 1 / file_fps
 
     return df_dict
+
+
+# @jit
+# def trying_numba(Xn, Yn, Xn1, Yn1, reciprocol_fps, frame_diff, pixel_size):
+#    displacement = sqrt(((Xn - Xn1) ** 2) + (Yn - Yn1) ** 2)
+#    displacement = (displacement * pixel_size) / (reciprocol_fps * frame_diff)
+#    return displacement
+
+
+"""
+tracking_data_analysis:
+Inputs:
+split_list -> nested lists containing the pathnames for preprocessed .tif image sequences
+progress -> int used for progress window
+root -> tk root of progress window
+settings_list -> list containing the user defined parameters, such as search radius and tracking memory
+name_indices -> tuple containing the negative indices of the file number, to keep track of which video the analyzed data came from
+
+Output:
+
+
+
+
+"""
 
 
 def tracking_data_analysis(split_list, progress, root, settings_list, name_indices):
@@ -67,7 +92,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list, name_indic
             linked_obj = tp.link_df(f, search_range, memory=trk_memory)
             linked_obj = linked_obj.sort_values(by=["particle", "frame"])
 
-            # Uncomment this to get plots of object paths (ruins automation workflow)
+            # Uncomment the line below to get plots of object paths (ruins automation workflow)
             # tp.plot_traj(linked_obj)
 
             # This next section is getting the speed and positional data about the objects
@@ -84,7 +109,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list, name_indic
             total_objs = dd_values["particle"].iloc[-1]
             reciprocol_fps = 1 / fps
 
-            # The workflow for this loop is to separate the data for each particle into a new dataframe,
+            # The workflow for this loop is to separate the data for each particle into a new dataframe, then
             # find the initial object coordinates & first frame (so you can go back and locate the object).
             #
             # Then for each frame, the object positions and frame numbers are used to find the change in distance
@@ -103,7 +128,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list, name_indic
                     last_x = pythag_df["x"].iloc[-1]
                     last_y = pythag_df["y"].iloc[-1]
 
-                    # In plain english, this is pythagorean theorem, (a^2 + b^2) = c^2
+                    # In plain english, this is pythagorean theorem, (a^2 + b^2) = c^2, where a and b are the x and y distances travelled between frame n and frame n+1
                     distance = (
                         sqrt(((first_x - last_x) ** 2) + (first_y - last_y) ** 2)
                         * pixel_size
@@ -131,6 +156,9 @@ def tracking_data_analysis(split_list, progress, root, settings_list, name_indic
                         displacement = (displacement * pixel_size) / (
                             reciprocol_fps * frame_diff
                         )
+                        # displacement = trying_numba(
+                        #    Xn, Yn, Xn1, Yn1, reciprocol_fps, frame_diff, pixel_size
+                        # )
                         output_list.append(displacement)
 
                     df = pd.DataFrame(output_list)
@@ -159,7 +187,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list, name_indic
             desired_values = linked_obj[["frame", "particle", "mass"]]
             total_objs = desired_values["particle"].iloc[-1]
 
-            # This is how the obj_size DataFrame is formatted for the size of objets and file information
+            # This is how the obj_size DataFrame is formatted for the size of objects and file information
             # Average Obj Size | Std of Obj Size | File | Particle |
             # ----------------------------------------------------------
             #       14.86      |       7.38      |   1  |     0    |
@@ -188,11 +216,10 @@ def tracking_data_analysis(split_list, progress, root, settings_list, name_indic
                 obj_size_list, columns=["Average Obj Size", "Std of Obj Size"]
             )
 
-            output_df = obj_size_df.join(
-                displacement_df
-            )  # This is joining the two dataframes together, for the final/ output DataFrame
+            # This is joining the two dataframes together, for the final/ output DataFrame
+            output_df = obj_size_df.join(displacement_df)
 
-            # What's happening in the .join() function:
+            # What's happening in the .join() line:
             # Average Obj Size | Std of Obj Size | File | Particle |  +  | 1st X | 1st Y | First Frame | Distance |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 |
             # -----------------------------------------------------|  +  |----------------------------------------------------------------------------------------------------------------------
             #       14.86      |       7.38      |   1  |     0    |  +  |  150  |  150  |      0      |   18.6   |These sections are the instantaneous speed of the object at each frame
@@ -202,7 +229,7 @@ def tracking_data_analysis(split_list, progress, root, settings_list, name_indic
 
             final_df = pd.concat([final_df, output_df])
 
-        # Saving as excel (The automatic naming is based on the naming convention below)
+        # Saving as csv (The automatic naming is based on the naming convention below)
         # Naming convention: Thresh-XXXXXXXXX-01.tif
 
         filename = os.path.basename(split_list[j][0])

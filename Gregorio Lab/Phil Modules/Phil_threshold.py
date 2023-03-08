@@ -2,7 +2,7 @@ from statistics import mean
 import random
 from tkinter import ttk
 
-# from ttkthemes import ThemedStyle
+
 from tkinter.messagebox import showinfo
 import os
 import os.path
@@ -14,21 +14,27 @@ import tifffile as tif
 import tkinter as tk
 
 
-# Gui to help user find best thresholding value for videos (Picks a random chosen video to use)
+# Gui to help user find best thresholding value for videos (Picks a randomly chosen video to use)
 # For larger sample sizes more videos will be tested
-# Always at least 1 video, and capped at 5 if n > 200 (n is selected files)
+# Always at least 1 video, and capped at 5 if n > 200 (n is number of selected files)
 
 
 def threshold_value_testing(List_of_Filepaths):
+
     multiples_of_50 = len(List_of_Filepaths) // 50
+
     if multiples_of_50 == 1:
         num_files_for_threshold = 2
+
     elif multiples_of_50 == 2:
         num_files_for_threshold = 3
+
     elif multiples_of_50 == 3:
         num_files_for_threshold = 4
+
     elif multiples_of_50 >= 4:
         num_files_for_threshold = 5
+
     else:
         num_files_for_threshold = 1
 
@@ -37,6 +43,7 @@ def threshold_value_testing(List_of_Filepaths):
             range(0, len(List_of_Filepaths)), num_files_for_threshold
         )
         thresh_values = []
+
     except:
         print("Please re-run program, and make sure to select files!")
         sys.exit()
@@ -48,7 +55,7 @@ def threshold_value_testing(List_of_Filepaths):
             window.destroy()
             cv2.destroyAllWindows()
 
-        # the arg values being passed to the function is meant to not be used (I promise im not dumb)
+        # this arg being passed to the function is meant to not be used
         def double_check(values):
 
             threshold_value = value.get()
@@ -65,11 +72,7 @@ def threshold_value_testing(List_of_Filepaths):
 
         window = tk.Tk()
         window.title("Checking Thresholding Value")
-        window.resizable(False, False)
         window.geometry("425x250")
-        # style = ThemedStyle(window)
-        # style.set_theme("equilux")
-        # window.configure(bg="#464646")
 
         thresh_check_frame = ttk.Frame(window, padding="5 5 10 10")
         thresh_check_frame.grid(column=0, row=0)
@@ -88,7 +91,7 @@ def threshold_value_testing(List_of_Filepaths):
         # Here 100 is just a default starting point for the thresholding value
         value = tk.IntVar(thresh_check_frame, 100)
 
-        # Widgets! I chose not to show threshold value to eliminate human bias % simplicity
+        # Widgets! I chose not to show threshold value to eliminate human bias & simplicity
         slider = ttk.Scale(
             thresh_check_frame,
             from_=255,
@@ -103,7 +106,7 @@ def threshold_value_testing(List_of_Filepaths):
             column=1, row=1, padx=10, pady=5
         )
 
-        old_thresh_label = ttk.Label(
+        ttk.Label(
             thresh_check_frame, text="Select best thresholding value:", font=12
         ).grid(column=0, row=0, padx=20, pady=10)
         ttk.Label(
@@ -163,5 +166,5 @@ def thresholding_files(filepath, threshold_value, progress, root):
 
     # There were a few times I got a random NameError, so added this
     except NameError:
-        showinfo(title="Error", message=f"Error 001")
+        showinfo(title="Error", message=f"Phil encountered a NameError. Try rerunning the program, and ensure all files selected are .tif image sequences")
         sys.exit()

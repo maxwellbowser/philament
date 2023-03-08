@@ -14,7 +14,8 @@ from tkinter import messagebox
 import os
 import os.path
 from datetime import date
-import multiprocessing
+
+# import multiprocessing
 from tkinter import filedialog as fd
 import cv2
 import sys
@@ -28,8 +29,7 @@ from phil_track import *
 
 if __name__ == "__main__":
     # This line is neccesary for proper running after being compiled with pyinstaller
-    multiprocessing.freeze_support()
-    start_time = int((time()) * 1000)
+    # multiprocessing.freeze_support()
 
     todays_date = date.today()
 
@@ -63,9 +63,9 @@ if __name__ == "__main__":
     the two lines. I chose to do reverse indices, because our file naming system will increase the length of the file-
     name in the front of the string, but the file number is in the back of the string.
     e.g
-    1Lmod-01, 10Lmod-01, 100Lmod-01 | Back index is unaffected
+    1Lmod-01, 10Lmod-01, 100Lmod-01 | Reverse index is unaffected
 
-    Later in the script, the selected file names will have -Thresh prefixes and .tif suffixes added, which is accounted for
+    Later in the script, the selected file names will have Thresh- prefixes and .tif suffixes added, which is accounted for
     by adding them before finding the indices.
 
     e.g.
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         if len(slash_positions) > 2:
             showinfo(
                 title="Naming Convention",
-                message="Please check naming convention, and only suround the file number with one '|' on each side.\ne.g. Filename-|02|",
+                message="Please check naming convention, and only suround the file number with one '|' on each side.\ne.g. Filename-|01|",
             )
             sys.exit()
 
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     # Functions for buttons
     # I had trouble getting the trk algo variable to change, and I was able to
     # make it work with this function
-    # SHOULD FIX BEFORE PUBLICATION
+    # SHOULD FIX
     def set_value(x):
         global trk_algo
         trk_algo = x
@@ -291,7 +291,8 @@ if __name__ == "__main__":
         naming_convention = tk_file_name.get()
     except:
         showinfo(
-            title="Whoops!", message="Error: Invalid Input\nPlease restart program"
+            title="Whoops!",
+            message="Error: Invalid Input\nPlease restart program and ensure parameters are in correct format",
         )
         sys.exit()
     Default_values = [
@@ -320,7 +321,7 @@ if __name__ == "__main__":
     except FileExistsError:
         showinfo(
             "Error",
-            "Folder already exists!\nPlease delete or move the folder and try again.",
+            "Chosen folder name already exists!\nPlease delete or move the folder and try again.",
         )
         folder = os.getcwd()
         os.startfile(folder)
@@ -332,6 +333,8 @@ if __name__ == "__main__":
     except:
         showinfo(title="Program Closed", message="Goodbye, have a good day! :)")
         sys.exit()
+
+    start_time = int((time()) * 1000)
 
     # Progress bar design (nothing super cool/ interesting)
     list_len = len(filepath)
