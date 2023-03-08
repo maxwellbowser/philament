@@ -55,9 +55,31 @@ def backwards_adding():
 
 def admin_powers(address_book):
     display_contacts(address_book)
-    x = input("Enter index to delete:")
+    x = False
 
-    pass
+    while x == False:
+        print("Enter index to delete: (the index really starts at 0, no worries)")
+        index = input().strip()
+
+        print(f"To confirm, you would like to delete contact {index}? y/n")
+        confirm = input().lower
+
+        if confirm == "y":
+            x = True
+        elif confirm == "exit":
+            return address_book
+
+    try:
+        address_book.pop(int(index) - 1)
+
+    except:
+        print("sorry, thats not a valid index!")
+        return address_book
+
+    system("cls")
+    display_contacts(address_book)
+
+    return address_book
 
 
 # Apologies for the shit ton of repeating code, I don't know how to do this better :'(
@@ -80,25 +102,27 @@ def add_contact(address_book: list) -> list:
     except NameError:
         pass
 
-    input_info.append(fName.capitalize())
+    fName = fName.capitalize()
+    input_info.append(fName)
     system("cls")
 
     show_info(input_info)
     print("Enter last name:")
     lName = input().strip().lower()
-    if lName == "skip":
+    if lName == "skip" or lName == "":
         lName = None
         input_info.append(lName)
 
     else:
-        input_info.append(lName.capitalize())
+        lName = lName.capitalize()
+        input_info.append(lName)
 
     system("cls")
 
     show_info(input_info)
     print("Enter address:")
     address = input().strip().lower()
-    if address == "skip":
+    if address == "skip" or address == "":
         address = None
 
     input_info.append(address)
@@ -107,8 +131,11 @@ def add_contact(address_book: list) -> list:
     show_info(input_info)
     print("Enter phone number (no dashes or spaces):")
     phone = input().strip().lower()
-    if phone == "skip":
+    if phone == "skip" or phone == "":
         phone = None
+
+    else:
+        phone = "(" + phone[:3] + ")" + "-" + phone[3:6] + "-" + phone[6:10]
 
     input_info.append(phone)
     system("cls")
@@ -116,7 +143,7 @@ def add_contact(address_book: list) -> list:
     show_info(input_info)
     print("Enter email address:")
     email = input().strip().lower()
-    if email == "skip":
+    if email == "skip" or email == "":
         email = None
 
     input_info.append(email)
@@ -151,7 +178,16 @@ def delete_contact(address_book: list) -> list:
         if contact[0].lower() == search:
             edit_index.append(address_book.index(contact))
 
+            print(edit_index)
+            input()
+
         elif search == "exit":
+            return
+
+        else:
+            system("cls")
+            print("Sorry, that contact does not exist!")
+            loading()
             return
 
     if len(edit_index) == 0:
@@ -168,7 +204,8 @@ def delete_contact(address_book: list) -> list:
         edit_index = [repeat_name(address_book, edit_index)]
         return
 
-    del address_book[edit_index[0]]
+    else:
+        address_book.pop[edit_index[0]]
 
     return address_book
 
@@ -210,8 +247,11 @@ try:
     with open("contactos.pickle", "rb") as reader:
         book = load(reader)
 
-except FileNotFoundError:
+except:
     book = []
+    print("hi")
+    with open("contactos.pickle", "wb") as writer:
+        dump(book, writer)
 
 
 # Running loop:
@@ -236,7 +276,7 @@ while True:
 Command List:
 add -> add new contact
 edit -> edit contact
-delete -> delete contact (WIP)
+delete -> delete contact
 search -> search for contacts (WIP)
 show -> display all contacts
 reset -> clear entire address book
@@ -277,6 +317,13 @@ exit -> exit program
         system("cls")
         book = admin_powers(book)
 
+    elif command == "test":
+        print(book)
+        input()
+
     else:
-        print("Please enter a command!")
+        print("Please enter a valid command!")
         sleep(1)
+
+    with open("contactos.pickle", "wb") as writer:
+        dump(book, writer)
