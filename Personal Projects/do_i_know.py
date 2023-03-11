@@ -10,6 +10,17 @@ heading = """
 """
 help_text = "For List of Commands, type 'help'"
 
+command_list = """
+Command List:
+add -> add new contact
+edit -> edit contact
+delete -> delete contact
+search -> search for contacts (WIP)
+show -> display all contacts
+reset -> clear entire address book
+exit -> exit program
+"""
+
 
 def loading():
     sleep(1)
@@ -243,87 +254,82 @@ def search_contacts():
     pass
 
 
-try:
-    with open("contactos.pickle", "rb") as reader:
-        book = load(reader)
+def main():
+    try:
+        with open("contactos.pickle", "rb") as reader:
+            book = load(reader)
 
-except:
-    book = []
-    print("hi")
-    with open("contactos.pickle", "wb") as writer:
-        dump(book, writer)
+    except:
+        book = []
+        print("hi")
+        with open("contactos.pickle", "wb") as writer:
+            dump(book, writer)
 
-
-# Running loop:
-########################################################
-while True:
-    system("cls")
-    print(heading + help_text)
-
-    command = input(">>").strip().lower()
-
-    # remember to make all the command elif start with system('cls')
-    # just for consistencys sake!
-
-    if command == "add":
-        add_contact(book)
-
-    elif command == "help":
+    # Running loop:
+    ########################################################
+    while True:
         system("cls")
-        print(
-            heading
-            + """
-Command List:
-add -> add new contact
-edit -> edit contact
-delete -> delete contact
-search -> search for contacts (WIP)
-show -> display all contacts
-reset -> clear entire address book
-exit -> exit program
-"""
-        )
+        print(heading + help_text)
 
-        input("Hit enter to return to the main menu\n")
+        command = input(">>").strip().lower()
 
-    elif command == "edit":
-        system("cls")
-        book = delete_contact(book)
-        add_contact(book)
+        # remember to make all the command elif start with system('cls')
+        # just for consistencys sake!
 
-    elif command == "show":
-        system("cls")
-        display_contacts(book)
+        if command == "add":
+            add_contact(book)
 
-    elif command == "exit":
-        system("cls")
-        print("Goodbye!")
-        sleep(1)
-        exit()
-    elif command == "delete":
-        system("cls")
-        book = delete_contact(book)
+        elif command == "help":
+            system("cls")
+            print(heading + command_list)
 
-    elif command == "reset":
-        system("cls")
-        reset_book(book)
+            input("Hit enter to return to the main menu\n")
 
-    elif command == "hello" or command == "hi":
-        system("cls")
-        print(f"{heading}Hello there! I hope you're having a good day ʕ•ᴥ•ʔﾉ♡")
-        sleep(3)
+        elif command == "edit":
+            system("cls")
+            book = delete_contact(book)
+            add_contact(book)
 
-    elif command == "admin":
-        system("cls")
-        book = admin_powers(book)
+        elif command == "show":
+            system("cls")
+            display_contacts(book)
 
-    elif command == "test":
-        print(book)
-        input()
+        elif command == "exit":
+            system("cls")
+            print("Goodbye!")
+            sleep(1)
+            exit()
+        elif command == "delete":
+            system("cls")
+            book = delete_contact(book)
 
-    else:
-        print("Please enter a valid command!")
-        sleep(1)
+        elif command == "reset":
+            system("cls")
+            reset_book(book)
 
-    with open("contactos.pickle", "wb") as writer:
-        dump(book, writer)
+        elif command == "hello" or command == "hi":
+            system("cls")
+            print(f"{heading}Hello there! I hope you're having a good day ʕ•ᴥ•ʔﾉ♡")
+            sleep(3)
+
+        elif command == "admin":
+            system("cls")
+            book = admin_powers(book)
+
+        elif command == "test":
+            print(book)
+            input()
+
+        else:
+            print("Please enter a valid command!")
+            sleep(1)
+
+        with open("contactos.pickle", "wb") as writer:
+            dump(book, writer)
+
+        with open("contactos.pickle", "rb") as reader:
+            book = load(reader)
+
+
+if __name__ == "__main__":
+    main()
