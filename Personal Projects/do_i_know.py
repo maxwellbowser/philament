@@ -1,8 +1,9 @@
 # Making CLI Address Book
 from pickle import dump, load
-from os import system
+from os import system, chdir
 from time import sleep
 from sys import exit
+
 
 heading = """
                  Address Book
@@ -25,12 +26,12 @@ exit -> exit program
 def loading():
     sleep(1)
     print("Going back to main menu...")
-    sleep(2)
+    sleep(1.5)
 
 
 def show_info(info_list):
-    for name in info_list:
-        print(f"-{name}")
+    for info in info_list:
+        print(f"-{info}")
 
 
 def display_contacts(address_book):
@@ -96,14 +97,14 @@ def admin_powers(address_book):
 # Apologies for the shit ton of repeating code, I don't know how to do this better :'(
 def add_contact(address_book: list) -> list:
 
-    print("To skip any of the field entries, just enter 'skip'")
+    print("To skip any of the field entries, just hit 'enter' ")
     input_info = []
 
     print("Enter first name:")
     fName = input(">").strip().lower()
 
     try:
-        while fName == "skip" or fName == "":
+        while fName == "":
             print("Sorry first name cannot be skipped or blank")
             sleep(1)
             system("cls")
@@ -120,7 +121,7 @@ def add_contact(address_book: list) -> list:
     show_info(input_info)
     print("Enter last name:")
     lName = input().strip().lower()
-    if lName == "skip" or lName == "":
+    if lName == "":
         lName = None
         input_info.append(lName)
 
@@ -133,7 +134,7 @@ def add_contact(address_book: list) -> list:
     show_info(input_info)
     print("Enter address:")
     address = input().strip().lower()
-    if address == "skip" or address == "":
+    if address == "":
         address = None
 
     input_info.append(address)
@@ -142,7 +143,7 @@ def add_contact(address_book: list) -> list:
     show_info(input_info)
     print("Enter phone number (no dashes or spaces):")
     phone = input().strip().lower()
-    if phone == "skip" or phone == "":
+    if phone == "":
         phone = None
 
     else:
@@ -154,7 +155,7 @@ def add_contact(address_book: list) -> list:
     show_info(input_info)
     print("Enter email address:")
     email = input().strip().lower()
-    if email == "skip" or email == "":
+    if email == "":
         email = None
 
     input_info.append(email)
@@ -163,11 +164,10 @@ def add_contact(address_book: list) -> list:
     adding_contact = [fName, lName, address, phone, email]
     address_book.append(adding_contact)
 
-    with open("contactos.pickle", "wb") as writer:
-        dump(address_book, writer)
-
     print(f"Added {adding_contact[0]} to Address Book!")
+
     loading()
+    return address_book
 
 
 def delete_contact(address_book: list) -> list:
@@ -186,39 +186,31 @@ def delete_contact(address_book: list) -> list:
         search = input(">>").lower().strip()
 
     for contact in address_book:
-        if contact[0].lower() == search:
+
+        if search in contact[0].lower():
             edit_index.append(address_book.index(contact))
 
-            print(edit_index)
-            input()
-
         elif search == "exit":
-            return
+            return address_book
 
-        else:
-            system("cls")
-            print("Sorry, that contact does not exist!")
-            loading()
-            return
+    if len(edit_index) == 1:
 
-    if len(edit_index) == 0:
+        del address_book[edit_index[0]]
+        return address_book
+
+    elif len(edit_index) == 0:
         system("cls")
 
         print(
             f"{heading}Sorry, I couldn't find {search.capitalize()} in the address book!"
         )
         loading()
-        return
+        return address_book
 
     elif len(edit_index) > 1:
         print(f"More than one {search.capitalize()} was found!")
         edit_index = [repeat_name(address_book, edit_index)]
-        return
-
-    else:
-        address_book.pop[edit_index[0]]
-
-    return address_book
+        return address_book
 
 
 def reset_book(address_book):
@@ -254,17 +246,7 @@ def search_contacts():
     pass
 
 
-def main():
-    try:
-        with open("contactos.pickle", "rb") as reader:
-            book = load(reader)
-
-    except:
-        book = []
-        print("hi")
-        with open("contactos.pickle", "wb") as writer:
-            dump(book, writer)
-
+def main(book):
     # Running loop:
     ########################################################
     while True:
@@ -277,7 +259,8 @@ def main():
         # just for consistencys sake!
 
         if command == "add":
-            add_contact(book)
+            system("cls")
+            book = add_contact(book)
 
         elif command == "help":
             system("cls")
@@ -299,6 +282,7 @@ def main():
             print("Goodbye!")
             sleep(1)
             exit()
+
         elif command == "delete":
             system("cls")
             book = delete_contact(book)
@@ -317,12 +301,19 @@ def main():
             book = admin_powers(book)
 
         elif command == "test":
-            print(book)
-            input()
+            print("No test is implemented.")
+            sleep(3)
+
+        elif command == "frog":
+            system("cls")
+            pass  # Make a big ole frog.
 
         else:
             print("Please enter a valid command!")
             sleep(1)
+
+        if type(book) == None:  # TypeError
+            book = []
 
         with open("contactos.pickle", "wb") as writer:
             dump(book, writer)
@@ -332,4 +323,21 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        with open("contactos.pickle", "rb") as reader:
+            book = load(reader)
+
+    except:
+        book = []
+        with open("contactos.pickle", "wb") as writer:
+            dump(book, writer)
+
+    try:
+        main(book)
+
+    except TypeError:
+        print(f"oopsies! Address book is all gone :( ")
+        sleep(3)
+
+        book = []
+        main(book)
