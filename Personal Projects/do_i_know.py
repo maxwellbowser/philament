@@ -1,6 +1,6 @@
 # Making CLI Address Book
 from pickle import dump, load
-from os import system, chdir
+from os import system
 from time import sleep
 from sys import exit
 
@@ -9,6 +9,7 @@ heading = """
                  Address Book
 -----------------------------------------------
 """
+
 help_text = "For List of Commands, type 'help'"
 
 command_list = """
@@ -36,18 +37,49 @@ def show_info(info_list):
 
 def display_contacts(address_book):
     system("cls")
+    print(heading)
     for contact in range(0, len(address_book)):
         print(
             f"{contact+1} | Name: {address_book[contact][0]} {address_book[contact][1]}"
         )
-    input(">>")
 
 
 def repeat_name(address_book, name_locations):
-    names = []
-    for i in name_locations:
-        names.append(address_book[i])
-    print(names)
+    system("cls")
+    print(
+        heading
+        + f"I found {len(name_locations)} contacts with the first name: {address_book[name_locations[0]][0]}!"
+    )
+    display_list = [address_book[i] for i in name_locations]
+    display_contacts(display_list)
+    print("Enter the index # of desired contact!")
+    name_index = input(">>")
+
+    try:
+        name_index = int(name_index.strip()) - 1
+        assert name_locations[name_index]
+
+    except ValueError:
+        system("cls")
+        print(heading)
+        display_contacts(display_list)
+        print("Sorry, that's not a number! Please enter an existing index number...")
+
+        name_index = input(">>")
+        name_index = int(name_index.strip()) - 1
+
+    except AssertionError:
+        system("cls")
+        print(heading)
+        display_contacts(display_list)
+        print(
+            "Sorry, that index number was not found! Please enter an existing index number..."
+        )
+
+        name_index = input(">>")
+        name_index = int(name_index.strip()) - 1
+
+    return name_locations[name_index]
 
 
 def backwards_adding():
@@ -195,6 +227,7 @@ def delete_contact(address_book: list) -> list:
 
     if len(edit_index) == 1:
 
+        # print(f'Deleted {address_book[edit_index[0]][0]}' {address_book[edit_index[0]][1]})
         del address_book[edit_index[0]]
         return address_book
 
@@ -210,6 +243,7 @@ def delete_contact(address_book: list) -> list:
     elif len(edit_index) > 1:
         print(f"More than one {search.capitalize()} was found!")
         edit_index = [repeat_name(address_book, edit_index)]
+        del address_book[edit_index[0]]
         return address_book
 
 
@@ -276,6 +310,7 @@ def main(book):
         elif command == "show":
             system("cls")
             display_contacts(book)
+            input(">>")
 
         elif command == "exit":
             system("cls")
@@ -312,9 +347,6 @@ def main(book):
             print("Please enter a valid command!")
             sleep(1)
 
-        if type(book) == None:  # TypeError
-            book = []
-
         with open("contactos.pickle", "wb") as writer:
             dump(book, writer)
 
@@ -323,6 +355,7 @@ def main(book):
 
 
 if __name__ == "__main__":
+
     try:
         with open("contactos.pickle", "rb") as reader:
             book = load(reader)
