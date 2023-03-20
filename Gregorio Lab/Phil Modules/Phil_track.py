@@ -2,10 +2,11 @@ from math import sqrt
 import trackpy as tp
 import os
 import os.path
+import cv2
 
 import pandas as pd
 import tifffile as tif
-from numba import jit
+from pims import PyAVVideoReader
 
 
 # to automatically adjust for users with higher fps or longer video sequences (we use 5 fps and 10 sec videos)
@@ -51,7 +52,9 @@ Output:
 """
 
 
-def tracking_data_analysis(split_list, progress, root, settings_list, name_indices):
+def tracking_data_analysis(
+    split_list, progress, root, settings_list, name_indices, is_avi
+):
 
     # Tracking the objects & saving to excel sheet (does i .tif videos at a time, specified by sheet_size)
     pixel_size = settings_list[0]
@@ -81,7 +84,15 @@ def tracking_data_analysis(split_list, progress, root, settings_list, name_indic
 
             obj_size_list = []
 
-            frames = tif.imread(f"{split_list[j][i]}")
+            if is_avi == True:
+                frames = PyAVVideoReader(split_list[j][i])
+                avi_array = []
+                for x in range(0, len(frames)):
+                    avi_array.append(cv2.cvtColor(frames[x], cv2.COLOR_BGR2GRAY))
+                frames = avi_array
+
+            else:
+                frames = tif.imread(split_list[j][i])
 
             # tracking the objects & collecting obj information like position, size, brightness, ect.
             f = tp.batch(

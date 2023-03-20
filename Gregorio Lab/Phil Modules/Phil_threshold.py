@@ -8,20 +8,15 @@ import os
 import os.path
 import sys
 import cv2
-
-from numpy import array
 import tifffile as tif
 import tkinter as tk
+from numpy import array
+from pims import PyAVVideoReader
 
-
-# Gui to help user find best thresholding value for videos (Picks a randomly chosen video to use)
-# For larger sample sizes more videos will be tested
-# Always at least 1 video, and capped at 5 if n > 200 (n is number of selected files)
-
-
-def threshold_value_testing(List_of_Filepaths):
-
-    multiples_of_50 = len(List_of_Filepaths) // 50
+# this generates the sample size for showing the user images to
+# threshold, as well as picking the videos to be used for said sample
+def sample_generation(filepaths):
+    multiples_of_50 = len(filepaths) // 50
 
     if multiples_of_50 == 1:
         num_files_for_threshold = 2
@@ -39,40 +34,56 @@ def threshold_value_testing(List_of_Filepaths):
         num_files_for_threshold = 1
 
     try:
-        rand_file_num = random.sample(
-            range(0, len(List_of_Filepaths)), num_files_for_threshold
-        )
-        thresh_values = []
+        rand_file_num = random.sample(range(0, len(filepaths)), num_files_for_threshold)
 
     except:
         print("Please re-run program, and make sure to select files!")
         sys.exit()
 
+    return rand_file_num, num_files_for_threshold
+
+
+# Gui to help user find best thresholding value for videos (Picks a randomly chosen video to use)
+# For larger sample sizes more videos will be tested
+# Always at least 1 video, and capped at 5 if n > 200 (n is number of selected files)
+def threshold_value_testing(List_of_Filepaths):
+
+    # not super neccesary, but its easier to bundle these two commands together this way...
+    # sorry Tim Peters
+    def close():
+        window.destroy()
+        cv2.destroyAllWindows()
+
+    # This function allows for the changing of thresholding values to also
+    # change the image shown to the user. So if threshold changes from 50->60,
+    # this function is called to reshow the image with the updated threshold.
+    def double_check(value):
+
+        blur = cv2.medianBlur(checking_images[0], 5)
+
+        ret, thresholded_checked = cv2.threshold(
+            blur, threshold_value.get(), 255, cv2.THRESH_BINARY_INV
+        )
+
+        cv2.imshow("Thresholded Image", thresholded_checked)
+        cv2.imshow("Original Image", checking_images[0])
+        cv2.waitKey(5)
+
+    thresh_values = []
+    rand_file_num, num_files_for_threshold = sample_generation(List_of_Filepaths)
+
+    is_avi = False
+    if "avi" in List_of_Filepaths[rand_file_num[0]][-3:]:
+        is_avi = True
+
     # running the thresholding picker gui
     for i in range(0, len(rand_file_num)):
-
-        def close():
-            window.destroy()
-            cv2.destroyAllWindows()
-
-        # this arg being passed to the function is meant to not be used
-        def double_check(values):
-
-            threshold_value = value.get()
-
-            blur = cv2.medianBlur(checking_images[0], 5)
-
-            ret, thresholded_checked = cv2.threshold(
-                blur, threshold_value, 255, cv2.THRESH_BINARY_INV
-            )
-
-            cv2.imshow("Thresholded Image", thresholded_checked)
-            cv2.imshow("Original Image", checking_images[0])
-            cv2.waitKey(5)
 
         window = tk.Tk()
         window.title("Checking Thresholding Value")
         window.geometry("425x250")
+        window.resizable(False, False)
+        window.eval("tk::PlaceWindow . center")
 
         thresh_check_frame = ttk.Frame(window, padding="5 5 10 10")
         thresh_check_frame.grid(column=0, row=0)
@@ -81,15 +92,18 @@ def threshold_value_testing(List_of_Filepaths):
 
         checking_images = []
         current_num = i + 1
+        if is_avi == True:
+            checking_images = PyAVVideoReader(List_of_Filepaths[rand_file_num[i]])
 
-        loaded, checking_images = cv2.imreadmulti(
-            mats=checking_images,
-            filename=List_of_Filepaths[rand_file_num[i]],
-            flags=cv2.IMREAD_GRAYSCALE,
-        )
+        else:
+            loaded, checking_images = cv2.imreadmulti(
+                mats=checking_images,
+                filename=List_of_Filepaths[rand_file_num[i]],
+                flags=cv2.IMREAD_GRAYSCALE,
+            )
 
         # Here 100 is just a default starting point for the thresholding value
-        value = tk.IntVar(thresh_check_frame, 100)
+        threshold_value = tk.IntVar(thresh_check_frame, 100)
 
         # Widgets! I chose not to show threshold value to eliminate human bias & simplicity
         slider = ttk.Scale(
@@ -97,7 +111,7 @@ def threshold_value_testing(List_of_Filepaths):
             from_=255,
             to=0,
             orient="horizontal",
-            variable=value,
+            variable=threshold_value,
             command=double_check,
             length=200,
         ).grid(column=0, row=1)
@@ -116,14 +130,14 @@ def threshold_value_testing(List_of_Filepaths):
 
         double_check(0)
         thresh_check_frame.mainloop()
-        thresh_values.append(value.get())
+        thresh_values.append(threshold_value.get())
 
     # setting the thresholding value to be used when thresholding
     threshold_value = int(mean(thresh_values))
-    return threshold_value
+    return threshold_value, is_avi
 
 
-def thresholding_files(filepath, threshold_value, progress, root):
+def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
     # Start of the data analysis, the thresholding and saving of files
     try:
         for i in range(0, len(filepath)):
@@ -132,14 +146,23 @@ def thresholding_files(filepath, threshold_value, progress, root):
             try:
                 threshold_images = []
                 original_images = []
-
-                loaded, original_images = cv2.imreadmulti(
-                    mats=original_images,
-                    filename=f"{filepath[i]}",
-                    flags=cv2.IMREAD_GRAYSCALE,
-                )
-
                 filename = os.path.basename(filepath[i])
+
+                if is_avi == True:
+                    original_images = PyAVVideoReader(filepath[i])
+                    avi_size = original_images.frame_shape
+
+                    fourcc = cv2.VideoWriter_fourcc(*"XVID")
+                    avi_image = cv2.VideoWriter(
+                        "Thresh-" + filename, fourcc, fps, (avi_size[1], avi_size[0])
+                    )
+
+                else:
+                    loaded, original_images = cv2.imreadmulti(
+                        mats=original_images,
+                        filename=f"{filepath[i]}",
+                        flags=cv2.IMREAD_GRAYSCALE,
+                    )
 
                 for x in range(0, len(original_images)):
 
@@ -150,14 +173,22 @@ def thresholding_files(filepath, threshold_value, progress, root):
                         blur, threshold_value, 255, cv2.THRESH_BINARY_INV
                     )
 
-                    threshold_images.append(image)
+                    if is_avi == True:
+                        avi_image.write(image)
 
-                    # Saving thresholded tiff images using tifffile
+                    else:
+                        threshold_images.append(image)
+
+                if is_avi == True:
+                    avi_image.release()
+
+                else:
                     threshold_array = array(threshold_images)
                     tif.imwrite("Thresh-" + filename, threshold_array)
 
-                    progress.set(i + 1)
-                    root.update()
+                progress.set(i + 1)
+                root.update()
+
             except AssertionError:
                 showinfo(
                     title="Assertion Error",
@@ -166,5 +197,8 @@ def thresholding_files(filepath, threshold_value, progress, root):
 
     # There were a few times I got a random NameError, so added this
     except NameError:
-        showinfo(title="Error", message=f"Phil encountered a NameError. Try rerunning the program, and ensure all files selected are .tif image sequences")
+        showinfo(
+            title="Error",
+            message=f"Phil encountered a NameError. Try rerunning the program, and ensure all files selected are .tif image sequences",
+        )
         sys.exit()

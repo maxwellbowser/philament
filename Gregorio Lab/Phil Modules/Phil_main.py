@@ -20,6 +20,7 @@ from tkinter import filedialog as fd
 import cv2
 import sys
 from time import time
+import warnings
 
 import tkinter as tk
 
@@ -32,6 +33,7 @@ if __name__ == "__main__":
     # multiprocessing.freeze_support()
 
     todays_date = date.today()
+    warnings.simplefilter("ignore", DeprecationWarning)
 
     # Handling user closing window, so that the program will end
 
@@ -43,7 +45,11 @@ if __name__ == "__main__":
     # Function for opening browse window selecting files
     def select_files():
 
-        filetypes = (("TIFF Files", "*.tif"), ("All files", "*.*"))
+        filetypes = (
+            ("TIFF Files", "*.tif"),
+            ("AVI Files", "*.avi"),
+            ("All Files", "*.*"),
+        )
 
         global filepath
         filepath = []
@@ -108,9 +114,12 @@ if __name__ == "__main__":
     # If not, it sets them to our preset values and then creates a default_value file
     settings_test = os.path.exists("Settings.pickle")
 
+    # Need to implement
+    # global is_avi
     if settings_test == True:
         with open("Settings.pickle", "rb") as f:
             past_values = pickle.load(f)
+
         pixel_size = past_values[0]
         object_area = past_values[1]
         full_obj_data = past_values[2]
@@ -150,8 +159,9 @@ if __name__ == "__main__":
 
     # Setting up root & frames for the starting GUI
     root = tk.Tk()
-    root.title("Welcome to Philament Tracker!")
+    root.title("Welcome to Philament!")
     root.geometry("650x425")
+    root.minsize(450, 370)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
 
@@ -310,6 +320,9 @@ if __name__ == "__main__":
         pickle.dump(Default_values, f)
 
     name_index = Naming_Indices(naming_convention)
+
+    threshold_value, is_avi = threshold_value_testing(filepath)
+
     # Folder creation and changing cwd
     try:
         dir_name = str(chosen_dir_name) + " - Analyzed Files"
@@ -325,13 +338,6 @@ if __name__ == "__main__":
         )
         folder = os.getcwd()
         os.startfile(folder)
-        sys.exit()
-
-    # If the user closes the window, this handles it & closes the program
-    try:
-        threshold_value = threshold_value_testing(filepath)
-    except:
-        showinfo(title="Program Closed", message="Goodbye, have a good day! :)")
         sys.exit()
 
     start_time = int((time()) * 1000)
@@ -369,7 +375,7 @@ if __name__ == "__main__":
         column=2, row=0, padx=1, pady=3
     )
 
-    thresholding_files(filepath, threshold_value, progress, root)
+    thresholding_files(filepath, threshold_value, progress, root, is_avi, fps)
 
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.destroy()
@@ -385,8 +391,7 @@ if __name__ == "__main__":
     # By finding all filepaths that end in .tif in the working directory (where the thresholded videos are saved)
     # This function is able to automatically find the filepaths for the newly thresholded videos
     for x in os.listdir():
-        if x.endswith(".tif"):
-            thresholded_tifs.append(x)
+        thresholded_tifs.append(x)
 
     # Breaking the list into nested lists, to separate sample condition data into different sheets
     split_list = [
@@ -428,7 +433,9 @@ if __name__ == "__main__":
     )
 
     # This function takes care of all the tracking, linking, data analysis, and data formatting
-    tracking_data_analysis(split_list, progress, root, Default_values, name_index)
+    tracking_data_analysis(
+        split_list, progress, root, Default_values, name_index, is_avi
+    )
 
     # Incase user clicks the red x and wants to shutdown the program.
     root.protocol("WM_DELETE_WINDOW", on_closing)
@@ -440,6 +447,17 @@ if __name__ == "__main__":
     print(f"Total time to run was {elapsed_time_sec} sec or {elapsed_time_min} min")
 
     showinfo(title="Finished", message=f"All Files Tracked and Saved")
+
+    # Need to implement
+    """
+    with open("Settings.pickle", "rb") as f:
+        past_values = pickle.load(f)
+
+    past_values.append(is_avi)
+
+    with open("Settings.pickle", "wb") as f:
+        pickle.dump(past_values, f)
+    """
 
     # Opens folder where files were saved, so user can access them right away
     folder = os.getcwd()
