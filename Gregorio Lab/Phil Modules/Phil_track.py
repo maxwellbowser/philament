@@ -28,13 +28,6 @@ def column_naming(df_length, file_fps):
     return df_dict
 
 
-# @jit
-# def trying_numba(Xn, Yn, Xn1, Yn1, reciprocol_fps, frame_diff, pixel_size):
-#    displacement = sqrt(((Xn - Xn1) ** 2) + (Yn - Yn1) ** 2)
-#    displacement = (displacement * pixel_size) / (reciprocol_fps * frame_diff)
-#    return displacement
-
-
 """
 tracking_data_analysis:
 Inputs:
@@ -85,7 +78,9 @@ def tracking_data_analysis(
             obj_size_list = []
 
             if is_avi == True:
+
                 frames = PyAVVideoReader(split_list[j][i])
+
                 avi_array = []
                 for x in range(0, len(frames)):
                     avi_array.append(cv2.cvtColor(frames[x], cv2.COLOR_BGR2GRAY))
@@ -124,8 +119,8 @@ def tracking_data_analysis(
             # find the initial object coordinates & first frame (so you can go back and locate the object).
             #
             # Then for each frame, the object positions and frame numbers are used to find the change in distance
-            # from frame to frame. This is then converted to an instantaneous velocity by multiplying by
-            # the pixel size and dividing by the reciprocol fps, and this number is then appended to the list.
+            # from frame to frame. This is converted to an instantaneous velocity by multiplying by
+            # the pixel size and dividing by the reciprocol fps, and this number is appended to the list.
 
             for particle in range(0, total_objs):
 
@@ -139,7 +134,9 @@ def tracking_data_analysis(
                     last_x = pythag_df["x"].iloc[-1]
                     last_y = pythag_df["y"].iloc[-1]
 
-                    # In plain english, this is pythagorean theorem, (a^2 + b^2) = c^2, where a and b are the x and y distances travelled between frame n and frame n+1
+                    # In plain english, this is pythagorean theorem, (a^2 + b^2) = c^2,
+                    # where a and b are the x and y distances travelled between frame n and frame n+1
+
                     distance = (
                         sqrt(((first_x - last_x) ** 2) + (first_y - last_y) ** 2)
                         * pixel_size
@@ -167,14 +164,15 @@ def tracking_data_analysis(
                         displacement = (displacement * pixel_size) / (
                             reciprocol_fps * frame_diff
                         )
-                        # displacement = trying_numba(
-                        #    Xn, Yn, Xn1, Yn1, reciprocol_fps, frame_diff, pixel_size
-                        # )
+
                         output_list.append(displacement)
 
-                    df = pd.DataFrame(output_list)
-                    displacement_df = pd.concat([displacement_df, df], axis=1)
+                    output_list_df = pd.DataFrame(output_list)
+                    displacement_df = pd.concat(
+                        [displacement_df, output_list_df], axis=1
+                    )
 
+                # This removes particles only detected for a single frame
                 else:
                     pass
 
@@ -206,7 +204,8 @@ def tracking_data_analysis(
             #       55.06      |       5.18      |   1  |     2    |
             #       ect...     |       ect...    |ect...|   ect... |
 
-            # Loop to calculate mean and std for the particle size * brightness, which is converted into pixels by x/255
+            # Loop to calculate mean and std for the particle size * brightness,
+            # which is converted into pixels by particle size/255
             for object in range(0, int(total_objs)):
 
                 mass_df = desired_values[desired_values["particle"] == object]
@@ -239,9 +238,6 @@ def tracking_data_analysis(
             #       ect...     |       ect...    |ect...|   ect... |  +  | ect...| ect...|    ect...   |  ect...  |       ect...        |         ect...       |           ect...     |
 
             final_df = pd.concat([final_df, output_df])
-
-        # Saving as csv (The automatic naming is based on the naming convention below)
-        # Naming convention: Thresh-XXXXXXXXX-01.tif
 
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7 : name_indices[0]]

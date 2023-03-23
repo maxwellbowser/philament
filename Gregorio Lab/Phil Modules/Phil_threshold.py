@@ -93,6 +93,7 @@ def threshold_value_testing(List_of_Filepaths):
         checking_images = []
         current_num = i + 1
         if is_avi == True:
+
             checking_images = PyAVVideoReader(List_of_Filepaths[rand_file_num[i]])
 
         else:
@@ -149,7 +150,9 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
                 filename = os.path.basename(filepath[i])
 
                 if is_avi == True:
+
                     original_images = PyAVVideoReader(filepath[i])
+
                     avi_size = original_images.frame_shape
 
                     fourcc = cv2.VideoWriter_fourcc(*"XVID")

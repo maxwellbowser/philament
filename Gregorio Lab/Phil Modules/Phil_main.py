@@ -114,8 +114,8 @@ if __name__ == "__main__":
     # If not, it sets them to our preset values and then creates a default_value file
     settings_test = os.path.exists("Settings.pickle")
 
-    # Need to implement
-    # global is_avi
+    # Need to implement global was_avi
+
     if settings_test == True:
         with open("Settings.pickle", "rb") as f:
             past_values = pickle.load(f)

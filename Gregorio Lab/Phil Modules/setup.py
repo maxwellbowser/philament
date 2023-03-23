@@ -33,7 +33,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     # Your name:
-    author="Ryan Bowser",
+    author="Ryan M. Bowser",
     # Your email address:
     author_email="Ryanmaxwellbowser@gmail.com",
     # Link to your github repository or website:
@@ -51,11 +51,7 @@ setup(
         "In Vitro Motility",
     ],
     # List project dependencies:
-    install_requires=[
-        "numpy",
-        "pandas",
-        "trackpy",
-    ],
+    install_requires=["numpy", "pandas", "trackpy", "pims", "tifffile", "cv2"],
     # https://pypi.org/classifiers/
     classifiers=[],
 )
