@@ -36,8 +36,8 @@ def sample_generation(filepaths):
     try:
         rand_file_num = random.sample(range(0, len(filepaths)), num_files_for_threshold)
 
-    except:
-        print("Please re-run program, and make sure to select files!")
+    except ValueError:
+        print("Goodbye!")
         sys.exit()
 
     return rand_file_num, num_files_for_threshold
