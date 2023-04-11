@@ -22,9 +22,10 @@ setup(
     # Project name:
     name="philament-tracker",
     # Packages to include in the distribution:
-    packages=find_packages("opencv-python"),
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     # Project version number:
-    version="1.0.0",
+    version="0.1.0",
     # List a license for the project, eg. MIT License
     license="BSD-3-Clause",
     # Short description of your library:
