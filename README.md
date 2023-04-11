@@ -1,4 +1,4 @@
-# Philament Tracker (Phil)
+# Philament (Phil)
 
 Phil is a Python script that allows for automated analysis of centriod objects
 

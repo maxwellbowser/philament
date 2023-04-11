@@ -20,14 +20,12 @@ except Exception:
 
 setup(
     # Project name:
-    name="philament-tracker",
+    name="philament",
     # Packages to include in the distribution:
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     # Project version number:
     version="0.1.0",
-    # List a license for the project, eg. MIT License
-    license="BSD-3-Clause",
     # Short description of your library:
     description="Automated Tracking and Speed Analysis of Centroid Objects",
     # Long description of your library:
@@ -38,7 +36,7 @@ setup(
     # Your email address:
     author_email="Ryanmaxwellbowser@gmail.com",
     # Link to your github repository or website:
-    url="",
+    url="https://github.com/maxwellbowser/philament",
     # Download Link from where the project can be downloaded from:
     download_url="",
     # List of keywords:

@@ -1,0 +1,8 @@
+LICENSE
+README.md
+setup.py
+src/philament.egg-info/PKG-INFO
+src/philament.egg-info/SOURCES.txt
+src/philament.egg-info/dependency_links.txt
+src/philament.egg-info/requires.txt
+src/philament.egg-info/top_level.txt

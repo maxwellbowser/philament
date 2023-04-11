@@ -1,0 +1,21 @@
+Metadata-Version: 2.1
+Name: philament
+Version: 0.1.0
+Summary: Automated Tracking and Speed Analysis of Centroid Objects
+Home-page: https://github.com/maxwellbowser/philament
+Download-URL: 
+Author: Ryan M. Bowser
+Author-email: Ryanmaxwellbowser@gmail.com
+Keywords: Tracking,Automation,Research,Biology,Actin,Myosin,In Vitro Motility
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# Philament (Phil)
+
+Phil is a Python script that allows for automated analysis of centriod objects
+
+## Installation
+
+In the Gregorio lab server, navigate to 1_Lab Resources, and open the folder labelled "Phil Program Files".
+Then...
+1.
