@@ -1,5 +1,0 @@
-numba
-trackpy
-pims
-tifffile
-opencv-python
