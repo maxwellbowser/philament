@@ -1,6 +1,6 @@
-numpy
+numba
 pandas
 trackpy
 pims
 tifffile
-cv2
+cv2-python
