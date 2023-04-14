@@ -1,6 +1,5 @@
 numba
-pandas
 trackpy
 pims
 tifffile
-cv2-python
+opencv-python
