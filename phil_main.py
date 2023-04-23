@@ -1,9 +1,9 @@
-# This program is meant to take input of prerecorded .tif videos of bright objects on a dark background
-# and output thresholded .tif videos, along with a csv file with the frame to frame displacements of each
+# This program is meant to take input of prerecorded .tif/.avi videos of bright objects on a dark background
+# and output thresholded .tif/.avi videos, along with a csv file with the frame to frame displacements of each
 # object for all of the imported videos!
 
-# All code and comments written by Ryan Bowser (@maxwellbowser on github, ryanbowser@arizona.edu)
-# Feel free to send me an email if you have any questions!
+# All code and comments written by Ryan Bowser (@maxwellbowser on github, ryanmaxwellbowser@gmail.com)
+# Feel free to shoot me an email if you have any questions! (I will be away Summer 2023, so no promises on replies)
 
 
 import trackpy as tp
@@ -26,7 +26,6 @@ import tkinter as tk
 from phil_threshold import *
 from phil_track import *
 
-# Want to change from pickled lists to dicts stored as Json files
 import json
 
 if __name__ == "__main__":
@@ -44,7 +43,6 @@ if __name__ == "__main__":
 
     # Function for opening browse window selecting files
     def select_files():
-
         if was_avi == True:
             filetypes = (
                 ("AVI Files", "*.avi"),
@@ -176,12 +174,12 @@ if __name__ == "__main__":
     tk_file_name = tk.StringVar(value=settings["naming_convention"])
 
     # Labels being made
-    ttk.Label(values_frame, text="Pixel size (Microns):", anchor="w").grid(
+    ttk.Label(values_frame, text="Pixel size:", anchor="w").grid(
         column=0, row=0, padx=5, pady=5, sticky="W"
     )
     ttk.Label(
         values_frame,
-        text="Object area (In pixels):\nMUST be an odd integer",
+        text="Object diameter (In pixels):\nMUST be an odd integer",
         anchor="w",
     ).grid(column=0, row=1, padx=5, pady=5, sticky="W")
     ttk.Label(values_frame, text="# of files per condition:", anchor="w").grid(
@@ -264,6 +262,8 @@ if __name__ == "__main__":
         settings["fps"] = tk_fps.get()
         chosen_dir_name = tk_date.get()
         settings["naming_convention"] = tk_file_name.get()
+
+    # If someone puts in "cat" or any string variable where a number is needed, or vice versa
     except:
         showinfo(
             title="Whoops!",
@@ -275,8 +275,11 @@ if __name__ == "__main__":
 
     threshold_value, is_avi = threshold_value_testing(filepath)
 
+    # This is just to remember if user analyzed .avi files in their last run
+    # If so, the options for the file explorer defaults to .avi files
     settings["was_avi"] = is_avi
 
+    # Always gotta beautify these jsons
     with open("Phil-Settings.json", "w") as f:
         json.dump(settings, f, indent=4)
 
@@ -300,6 +303,9 @@ if __name__ == "__main__":
         os.startfile(folder)
         sys.exit()
 
+    # I chose to start the timer here, because this is the point where human input is no longer needed,
+    # and therefore better reflects the computation times needed, rather than if someone got distracted
+    # while picking the threshold value
     start_time = int((time()) * 1000)
 
     # Progress bar design (nothing super cool/ interesting)
@@ -335,6 +341,8 @@ if __name__ == "__main__":
         column=2, row=0, padx=1, pady=3
     )
 
+    # This function takes care of all of the thresholding and saving of files
+    # See phil_threshold.py to read through the documentation
     thresholding_files(
         filepath, threshold_value, progress, root, is_avi, settings["fps"]
     )
@@ -350,12 +358,13 @@ if __name__ == "__main__":
     thresholded_tifs = []
     split_list = []
 
-    # By finding all filepaths that end in .tif in the working directory (where the thresholded videos are saved)
-    # This function is able to automatically find the filepaths for the newly thresholded videos
+    # Because we create a new CWD each time the program is run, every file in that folder is part of
+    # the analysis sample. (unless some dummy puts a file in there while phil is still running)
     for x in os.listdir():
         thresholded_tifs.append(x)
 
-    # Breaking the list into nested lists, to separate sample condition data into different sheets
+    # Breaking the list into nested lists, to separate sample condition data into different groups
+    # This allows for much easier loops when the tracking and data formating is done
     split_list = [
         thresholded_tifs[i : i + settings["sheet_size"]]
         for i in range(0, len(thresholded_tifs), settings["sheet_size"])
@@ -394,7 +403,8 @@ if __name__ == "__main__":
         column=2, row=0, padx=1, pady=3
     )
 
-    # This function takes care of all the tracking, linking, data analysis, and data formatting
+    # This function takes care of all the tracking, linking, data analysis, and data formatting, as well as saving the files
+    # I feel like I could segment this function into something more pythonic, but for now, it works
     tracking_data_analysis(split_list, progress, root, settings, name_index, is_avi)
 
     # Incase user clicks the red x and wants to shutdown the program.
@@ -404,6 +414,9 @@ if __name__ == "__main__":
     elapsed_time = end_time - start_time
     elapsed_time_sec = round(elapsed_time / 1000, 2)
     elapsed_time_min = round(elapsed_time_sec / 60, 2)
+
+    # In the Windows EXE, this needs to be saved to an output.txt file since the terminal closes
+    # Immediatly after the program finishes running
     print(f"Total time to run was {elapsed_time_sec} sec or {elapsed_time_min} min")
 
     showinfo(title="Finished", message=f"All Files Tracked and Saved")
