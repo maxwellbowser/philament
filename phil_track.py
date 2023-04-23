@@ -11,7 +11,6 @@ from pims import PyAVVideoReader
 
 # to automatically adjust for users with higher fps or longer video sequences (we use 5 fps and 10 sec videos)
 def column_naming(df_length, file_fps):
-
     df_dict = {
         0: "Particle",
         1: "First X",
@@ -21,6 +20,10 @@ def column_naming(df_length, file_fps):
     }
     recip_fps = 1 / file_fps
 
+    # This loop writes the intervals between frames in seconds.
+    # For a 5fps movie, 10 sec long, the intervals will be in 1/5fps (0.2) seconds
+    # and will contain 50 cells (the calculation on line 28 is just
+    # getting the time passed, starting with 0.2 + 0.2 = 0.4)
     for cell in range(5, df_length):
         df_dict[cell] = recip_fps
         recip_fps += 1 / file_fps
@@ -28,8 +31,9 @@ def column_naming(df_length, file_fps):
     return df_dict
 
 
+# Apologies if this is overdocumentation
 """
-tracking_data_analysis:
+tracking_data_analysis
 Inputs:
 split_list -> nested lists containing the pathnames for preprocessed .tif image sequences
 progress -> int used for progress window
@@ -37,25 +41,55 @@ root -> tk root of progress window
 settings_list -> list containing the user defined parameters, such as search radius and tracking memory
 name_indices -> tuple containing the negative indices of the file number, to keep track of which video the analyzed data came from
 
-Output:
+            Workflow
+--------------------------------
+1. for (loop) number of conditions
 
+    a. create/clear dataframes which will contain all the positional data
 
+    b. for (loop) file in condition
+        * increase progress bar by 1 (since it starts at 0)
+        * separate filename and filenumber
+        * read .avi/.tif files (is_avi = True/False) 
 
+        * trackpy batch track and link objects
+        * sort datapoints by particle and frame
+        * separate out unwanted data (only frame, x, y, and particle #)
+
+        * for (loop) objects in tracked file
+            - find first/last x & y values (.iloc) 
+            - calculate total distance travelled (pythagorean equation)
+            - save first frame, first x/y, and particle number with distance
+
+            - for (loop) # of frames object is tracked
+                > calculate distances travelled and speed from frame to frame (pythag. eq.)
+                > append value to list & repeat
+            
+            - combine speed df and positional info df
+            - add to condition file
+        
+        * save condition file with all movies data 
+
+        * for (loop) objects in tracked file
+            - calculate avg and std of object size
+
+        * join object size and condition file together
+        * add to output dataframe with all the other data in that condition
+    
+    c. save .CSV file with data from all files in the condition 
+    
 
 """
 
 
 def tracking_data_analysis(split_list, progress, root, settings, name_indices, is_avi):
-
     # Tracking the objects & saving to excel sheet (does i .tif videos at a time, specified by sheet_size)
     for j in range(0, len(split_list)):
-
         # Defining Variables / Clearing Dataframes
         full_obj_df = pd.DataFrame()
         final_df = pd.DataFrame()
 
         for i in range(0, len(split_list[j])):
-
             displacement_df = pd.DataFrame()
 
             progress.set(progress.get() + 1)
@@ -68,7 +102,6 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
             obj_size_list = []
 
             if is_avi == True:
-
                 frames = PyAVVideoReader(split_list[j][i])
 
                 avi_array = []
@@ -119,7 +152,6 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
             # the pixel size and dividing by the reciprocol fps, and this number is appended to the list.
 
             for particle in range(0, total_objs):
-
                 pythag_df = dd_values[dd_values["particle"] == particle]
 
                 if len(pythag_df) > 1:
@@ -172,6 +204,8 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
                 else:
                     pass
 
+            # By using the dictionary retuned in column_naming() this line renames the rows of the data frame
+            # which is then transposed and set as the column names
             displacement_df = displacement_df.rename(
                 index=column_naming(len(displacement_df), settings["fps"])
             )
@@ -203,7 +237,6 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
             # Loop to calculate mean and std for the particle size * brightness,
             # which is converted into pixels by particle size/255
             for object in range(0, int(total_objs)):
-
                 mass_df = desired_values[desired_values["particle"] == object]
 
                 # If just one data point is available, obj is skipped, since you cant take a std from one data point
@@ -226,12 +259,12 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
             output_df = obj_size_df.join(displacement_df)
 
             # What's happening in the .join() line:
-            # Average Obj Size | Std of Obj Size | File | Particle |  +  | 1st X | 1st Y | First Frame | Distance |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 |
-            # -----------------------------------------------------|  +  |----------------------------------------------------------------------------------------------------------------------
-            #       14.86      |       7.38      |   1  |     0    |  +  |  150  |  150  |      0      |   18.6   |These sections are the instantaneous speed of the object at each frame
-            #       33.33      |       9.24      |   1  |     1    |  +  |  200  |  200  |      0      |   8.2    |  1.2 (Microns/sec)  |          2.3         |            0.5       |
-            #       55.06      |       5.18      |   1  |     2    |  +  |  168  |  15   |      2      |   1.55   |         0.3         |          0.8         |            1.2       |
-            #       ect...     |       ect...    |ect...|   ect... |  +  | ect...| ect...|    ect...   |  ect...  |       ect...        |         ect...       |           ect...     |
+            # Average Obj Size | Std of Obj Size |  +  | File | Particle | 1st X | 1st Y | First Frame | Distance |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 |
+            # -----------------------------------|  +  |---------------------------------------------------------------------------------------------------------------------------------------
+            #       14.86      |       7.38      |  +  |   1  |     0    |  150  |  150  |      0      |   18.6   |These sections are the instantaneous speed of the object at each frame
+            #       33.33      |       9.24      |  +  |   1  |     1    |  200  |  200  |      0      |   8.2    |  1.2 (Microns/sec)  |          2.3         |            0.5       |
+            #       55.06      |       5.18      |  +  |   1  |     2    |  168  |  15   |      2      |   1.55   |         0.3         |          0.8         |            1.2       |
+            #       ect...     |       ect...    |  +  |ect...|   ect... | ect...| ect...|    ect...   |  ect...  |       ect...        |         ect...       |           ect...     |
 
             final_df = pd.concat([final_df, output_df])
 
