@@ -13,9 +13,13 @@ import tkinter as tk
 from numpy import array
 from pims import PyAVVideoReader
 
+
 # this generates the sample size for showing the user images to
 # threshold, as well as picking the videos to be used for said sample
 def sample_generation(filepaths):
+    # This determines the sample size for thresholding videos
+    # Where the user is always shown at least 1, and every 50 videos added increases
+    # the sample size by 1, with a max of 5 images, if >250 videos are selected
     multiples_of_50 = len(filepaths) // 50
 
     if multiples_of_50 == 1:
@@ -33,9 +37,11 @@ def sample_generation(filepaths):
     else:
         num_files_for_threshold = 1
 
+    # Picking the threshold sample group
     try:
         rand_file_num = random.sample(range(0, len(filepaths)), num_files_for_threshold)
 
+    # If no files are selected, this exits phil
     except ValueError:
         print("Goodbye!")
         sys.exit()
@@ -47,7 +53,6 @@ def sample_generation(filepaths):
 # For larger sample sizes more videos will be tested
 # Always at least 1 video, and capped at 5 if n > 200 (n is number of selected files)
 def threshold_value_testing(List_of_Filepaths):
-
     # not super neccesary, but its easier to bundle these two commands together this way...
     # sorry Tim Peters
     def close():
@@ -58,13 +63,13 @@ def threshold_value_testing(List_of_Filepaths):
     # change the image shown to the user. So if threshold changes from 50->60,
     # this function is called to reshow the image with the updated threshold.
     def double_check(value):
-
         blur = cv2.medianBlur(checking_images[0], 5)
 
         ret, thresholded_checked = cv2.threshold(
             blur, threshold_value.get(), 255, cv2.THRESH_BINARY_INV
         )
-
+        # Need to implement scaling
+        # cv2.resize(object, (height, width)) is the function needed to change the frame if it's too large
         cv2.imshow("Thresholded Image", thresholded_checked)
         cv2.imshow("Original Image", checking_images[0])
         cv2.waitKey(5)
@@ -72,13 +77,15 @@ def threshold_value_testing(List_of_Filepaths):
     thresh_values = []
     rand_file_num, num_files_for_threshold = sample_generation(List_of_Filepaths)
 
+    # Philament now has the capability to threshold .avi files, so these lines just
+    # look for the string "avi" at the end of the filenames, to automatically change
+    # the pipeline to AVI files
     is_avi = False
     if "avi" in List_of_Filepaths[rand_file_num[0]][-3:]:
         is_avi = True
 
     # running the thresholding picker gui
     for i in range(0, len(rand_file_num)):
-
         window = tk.Tk()
         window.title("Checking Thresholding Value")
         window.geometry("425x250")
@@ -92,8 +99,9 @@ def threshold_value_testing(List_of_Filepaths):
 
         checking_images = []
         current_num = i + 1
-        if is_avi == True:
 
+        # This reader function from PIMS is utilized instead of the opencv imread
+        if is_avi == True:
             checking_images = PyAVVideoReader(List_of_Filepaths[rand_file_num[i]])
 
         else:
@@ -129,13 +137,44 @@ def threshold_value_testing(List_of_Filepaths):
             text=f"Image {current_num} out of {num_files_for_threshold}",
         ).grid(column=1, row=0, padx=20, pady=10)
 
+        # Providing an unused value seems strange, but the 0 here means nothing
+        # It's just a workaround to have this work, I'm not 100 % sure why it does
         double_check(0)
         thresh_check_frame.mainloop()
         thresh_values.append(threshold_value.get())
 
-    # setting the thresholding value to be used when thresholding
+    # setting the thresholding value to be used when thresholding, by averaging all selected values
     threshold_value = int(mean(thresh_values))
     return threshold_value, is_avi
+
+
+"""
+Thresholding_files takes in:
+    [List] containing the input filepaths (filepath)
+    Int containing the threshold value calculated from threshold_value_testing (threshold_value)
+    progress & root are tk variables for the progress bar
+    Is_avi indicates if the files are .avi (is_avi = True), or if they are .tif (is_avi = False)
+    Fps is the frame rate of the video
+
+            Workflow
+---------------------------------
+1. for (loop) every file selected:
+
+    a. assert that it is a file
+    b. check if the file is .tif or .avi
+    c. read file using cv2 or pims respectively 
+
+    d. for (loop) every frame of each file:
+        *Median blur frame
+        *Threshold frame 
+
+    e. save thresholded movie as "Thresh" + original filename
+    f. increase progress bar by 1
+    g. repeat
+
+return
+
+"""
 
 
 def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
@@ -150,7 +189,6 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
                 filename = os.path.basename(filepath[i])
 
                 if is_avi == True:
-
                     original_images = PyAVVideoReader(filepath[i])
 
                     avi_size = original_images.frame_shape
@@ -168,7 +206,6 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
                     )
 
                 for x in range(0, len(original_images)):
-
                     # Image processing (blur & thresholding)
                     blur = cv2.medianBlur(original_images[x], 5)
 
@@ -182,6 +219,7 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
                     else:
                         threshold_images.append(image)
 
+                # the file name is specified in line 193ish, and releasing is key for saving memory
                 if is_avi == True:
                     avi_image.release()
 
@@ -202,6 +240,7 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
     except NameError:
         showinfo(
             title="Error",
-            message=f"Phil encountered a NameError. Try rerunning the program, and ensure all files selected are .tif image sequences",
+            message=f"Phil encountered a NameError. Try rerunning the program, and ensure all files selected are .tif or .avi image sequences",
         )
         sys.exit()
+    return
