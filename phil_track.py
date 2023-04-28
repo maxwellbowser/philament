@@ -47,7 +47,7 @@ name_indices -> tuple containing the negative indices of the file number, to kee
 
     a. create/clear dataframes which will contain all the positional data
 
-    b. for (loop) file in condition
+    b. for (loop) files in condition
         * increase progress bar by 1 (since it starts at 0)
         * separate filename and filenumber
         * read .avi/.tif files (is_avi = True/False) 
@@ -71,7 +71,7 @@ name_indices -> tuple containing the negative indices of the file number, to kee
         * save condition file with all movies data 
 
         * for (loop) objects in tracked file
-            - calculate avg and std of object size
+            - calculate mean and std of object size
 
         * join object size and condition file together
         * add to output dataframe with all the other data in that condition
@@ -258,13 +258,13 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
             # This is joining the two dataframes together, for the final/ output DataFrame
             output_df = obj_size_df.join(displacement_df)
 
-            # What's happening in the .join() line:
-            # Average Obj Size | Std of Obj Size |  +  | File | Particle | 1st X | 1st Y | First Frame | Distance |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 |
-            # -----------------------------------|  +  |---------------------------------------------------------------------------------------------------------------------------------------
-            #       14.86      |       7.38      |  +  |   1  |     0    |  150  |  150  |      0      |   18.6   |These sections are the instantaneous speed of the object at each frame
-            #       33.33      |       9.24      |  +  |   1  |     1    |  200  |  200  |      0      |   8.2    |  1.2 (Microns/sec)  |          2.3         |            0.5       |
-            #       55.06      |       5.18      |  +  |   1  |     2    |  168  |  15   |      2      |   1.55   |         0.3         |          0.8         |            1.2       |
-            #       ect...     |       ect...    |  +  |ect...|   ect... | ect...| ect...|    ect...   |  ect...  |       ect...        |         ect...       |           ect...     |
+            # output_df now looks like this:
+            # Average Obj Size | Std of Obj Size | File | Particle | 1st X | 1st Y | First Frame | Distance |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 |
+            # -----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------
+            #       14.86      |       7.38      |   1  |     0    |  150  |  150  |      0      |   18.6   |These sections are the instantaneous speed of the object at each frame
+            #       33.33      |       9.24      |   1  |     1    |  200  |  200  |      0      |   8.2    |  1.2 (Microns/sec)  |          2.3         |            0.5       |
+            #       55.06      |       5.18      |   1  |     2    |  168  |  15   |      2      |   1.55   |         0.3         |          0.8         |            1.2       |
+            #       ect...     |       ect...    |ect...|   ect... | ect...| ect...|    ect...   |  ect...  |       ect...        |         ect...       |           ect...     |
 
             final_df = pd.concat([final_df, output_df])
 
