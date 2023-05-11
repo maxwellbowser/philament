@@ -42,7 +42,7 @@ Rules of thumb:
 2)	Put file numbers at the end of file names
 3)	Add 0’s to single-digit file numbers, if including double-digit file numbers.  
 
-For example, an experiment studying interactions between actin and myosin, may have the base file name “Actin05ugMyosin01, and Philament needs to differentiate that the condition is “Actin05ugMyosin”, and this is the first run, “01” (rather than mistakenly setting the condition as “ActinugMyosin01”, and the file number as “05”). By providing an example file name in the naming convention entry, “Actin05ugMyosin*01*”, you are providing the positional information of where run numbers are contained within the file name. Philament is able to compensate for any other changes in the filename, as long as the file number stays in the same position relative to the end of the file name. 
+For example, an experiment studying interactions between actin and myosin, may have the base file name “Actin05ugMyosin01, and Philament needs to differentiate that the condition is “Actin05ugMyosin”, and this is the first run, “01” (rather than mistakenly setting the condition as “ActinugMyosin01”, and the file number as “05”). By providing an example file name in the naming convention entry, “Actin05ugMyosin\*01\*”, you are providing the positional information of where run numbers are contained within the file name. Philament is able to compensate for any other changes in the filename, as long as the file number stays in the same position relative to the end of the file name. 
 
 For example, the table below shows how Philament handles files in a given run when provided the naming convention: Actin05ugMyosin\*01\*
 | Input file names | Condition | File Number |
