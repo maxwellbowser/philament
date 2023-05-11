@@ -11,7 +11,8 @@ Phil is a Python script that allows for automated analysis of centroid objects
 ## User Guide
 
 Philament starting user interface:
-![image](https://github.com/maxwellbowser/philament/assets/107726558/e7727c82-7015-4283-b17c-2f748e185682)
+![image](https://github.com/maxwellbowser/philament/assets/107726558/e7c1fe65-7006-4170-b5ed-b91cdb83aa87)
+
 
 
 Pixel size:
