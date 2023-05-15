@@ -52,6 +52,8 @@ def sample_generation(filepaths):
 # Gui to help user find best thresholding value for videos (Picks a randomly chosen video to use)
 # For larger sample sizes more videos will be tested
 # Always at least 1 video, and capped at 5 if n > 200 (n is number of selected files)
+
+
 def threshold_value_testing(List_of_Filepaths):
     # not super neccesary, but its easier to bundle these two commands together this way...
     # sorry Tim Peters
