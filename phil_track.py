@@ -16,7 +16,7 @@ def column_naming(df_length, file_fps):
         1: "First X",
         2: "First Y",
         3: "First Frame",
-        4: "Distance",
+        4: "Displacement",
     }
     recip_fps = 1 / file_fps
 
@@ -47,10 +47,10 @@ name_indices -> tuple containing the negative indices of the file number, to kee
 
     a. create/clear dataframes which will contain all the positional data
 
-    b. for (loop) files in condition
+    b. for (loop) file in condition
         * increase progress bar by 1 (since it starts at 0)
         * separate filename and filenumber
-        * read .avi/.tif files (is_avi = True/False) 
+        * read .avi/.tif files (is_avi = True/False respectively) 
 
         * trackpy batch track and link objects
         * sort datapoints by particle and frame
@@ -58,8 +58,8 @@ name_indices -> tuple containing the negative indices of the file number, to kee
 
         * for (loop) objects in tracked file
             - find first/last x & y values (.iloc) 
-            - calculate total distance travelled (pythagorean equation)
-            - save first frame, first x/y, and particle number with distance
+            - calculate total displacement travelled (pythagorean equation)
+            - save first frame, first x/y, and particle number with displacement
 
             - for (loop) # of frames object is tracked
                 > calculate distances travelled and speed from frame to frame (pythag. eq.)
@@ -71,7 +71,7 @@ name_indices -> tuple containing the negative indices of the file number, to kee
         * save condition file with all movies data 
 
         * for (loop) objects in tracked file
-            - calculate mean and std of object size
+            - calculate avg and std of object size
 
         * join object size and condition file together
         * add to output dataframe with all the other data in that condition
@@ -83,6 +83,7 @@ name_indices -> tuple containing the negative indices of the file number, to kee
 
 
 def tracking_data_analysis(split_list, progress, root, settings, name_indices, is_avi):
+    caught_exceptions = ""
     # Tracking the objects & saving to excel sheet (does i .tif videos at a time, specified by sheet_size)
     for j in range(0, len(split_list)):
         # Defining Variables / Clearing Dataframes
@@ -122,9 +123,14 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
             )
 
             # Linking the objects / tracking their paths
-            linked_obj = tp.link_df(
-                f, settings["search_range"], memory=settings["trk_memory"]
-            )
+            try:
+                linked_obj = tp.link_df(
+                    f, settings["search_range"], memory=settings["trk_memory"]
+                )
+            except Exception as e:
+                caught_exceptions += f"{filename[7 : name_indices[0]]}{file_num} was skipped due to:\n{e}\n"
+                continue
+
             linked_obj = linked_obj.sort_values(by=["particle", "frame"])
 
             # Uncomment the line below to get plots of object paths (ruins automation workflow)
@@ -133,11 +139,11 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
             # This next section is getting the speed and positional data about the objects
             # The data is formatted as follows (example data):
             #
-            # 1st X | 1st Y | First Frame | Distance |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 | ect..
+            # 1st X | 1st Y | First Frame | Displacement |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 | ect..
             # ---------------------------------------------------------------------------------------------------------
-            #  150  |  150  |      0      |   18.6   |These sections are the instantaneous speed of the object at each frame
-            #  200  |  200  |      0      |   8.2    |  1.2 (Microns/sec)  |          2.3         |            0.5       |
-            #  168  |  15   |      2      |   1.55   |         0.3         |          0.8         |            1.2       |
+            #  150  |  150  |      0      |     18.6     |These sections are the instantaneous speed of the object at each frame
+            #  200  |  200  |      0      |     8.2      |  1.2 (Microns/sec)  |          2.3         |            0.5       |
+            #  168  |  15   |      2      |     1.55     |         0.3         |          0.8         |            1.2       |
 
             # dd_values stands for desired_displacement values
             dd_values = linked_obj[["particle", "frame", "x", "y"]]
@@ -165,7 +171,7 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
                     # In plain english, this is pythagorean theorem, (a^2 + b^2) = c^2,
                     # where a and b are the x and y distances travelled between frame n and frame n+1
 
-                    distance = (
+                    displacement = (
                         sqrt(((first_x - last_x) ** 2) + (first_y - last_y) ** 2)
                         * settings["pixel_size"]
                     )
@@ -174,7 +180,7 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
                         first_x,
                         first_y,
                         first_frame,
-                        distance,
+                        displacement,
                     ]
 
                     for frame in range(1, len(pythag_df)):
@@ -258,13 +264,13 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
             # This is joining the two dataframes together, for the final/ output DataFrame
             output_df = obj_size_df.join(displacement_df)
 
-            # output_df now looks like this:
-            # Average Obj Size | Std of Obj Size | File | Particle | 1st X | 1st Y | First Frame | Distance |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 |
-            # -----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------
-            #       14.86      |       7.38      |   1  |     0    |  150  |  150  |      0      |   18.6   |These sections are the instantaneous speed of the object at each frame
-            #       33.33      |       9.24      |   1  |     1    |  200  |  200  |      0      |   8.2    |  1.2 (Microns/sec)  |          2.3         |            0.5       |
-            #       55.06      |       5.18      |   1  |     2    |  168  |  15   |      2      |   1.55   |         0.3         |          0.8         |            1.2       |
-            #       ect...     |       ect...    |ect...|   ect... | ect...| ect...|    ect...   |  ect...  |       ect...        |         ect...       |           ect...     |
+            # What's happening in the .join() line:
+            # Average Obj Size | Std of Obj Size |  +  | File | Particle | 1st X | 1st Y | First Frame | Displacement |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 |
+            # -----------------------------------|  +  |---------------------------------------------------------------------------------------------------------------------------------------
+            #       14.86      |       7.38      |  +  |   1  |     0    |  150  |  150  |      0      |     18.6     |These sections are the instantaneous speed of the object at each frame
+            #       33.33      |       9.24      |  +  |   1  |     1    |  200  |  200  |      0      |     8.2      |  1.2 (Microns/sec)  |          2.3         |            0.5       |
+            #       55.06      |       5.18      |  +  |   1  |     2    |  168  |  15   |      2      |     1.55     |         0.3         |          0.8         |            1.2       |
+            #       ect...     |       ect...    |  +  |ect...|   ect... | ect...| ect...|    ect...   |    ect...    |       ect...        |         ect...       |           ect...     |
 
             final_df = pd.concat([final_df, output_df])
 
@@ -275,3 +281,5 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
         # Full object data option
         if settings["full_obj_data"] == True:
             full_obj_df.to_csv(f"{proper_name}-Full Object Data.csv")
+
+    return caught_exceptions
