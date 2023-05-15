@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
     # Setting up root & frames for the starting GUI
     root = tk.Tk()
-    root.title("Welcome to Philament!")
+    root.title("Welcome to Philament!  (v0.1.0)")
     root.geometry("550x425")
     root.minsize(450, 370)
     root.columnconfigure(0, weight=1)
@@ -405,7 +405,9 @@ if __name__ == "__main__":
 
     # This function takes care of all the tracking, linking, data analysis, and data formatting, as well as saving the files
     # I feel like I could segment this function into something more pythonic, but for now, it works
-    tracking_data_analysis(split_list, progress, root, settings, name_index, is_avi)
+    caught_errors = tracking_data_analysis(
+        split_list, progress, root, settings, name_index, is_avi
+    )
 
     # Incase user clicks the red x and wants to shutdown the program.
     root.protocol("WM_DELETE_WINDOW", on_closing)
@@ -415,9 +417,28 @@ if __name__ == "__main__":
     elapsed_time_sec = round(elapsed_time / 1000, 2)
     elapsed_time_min = round(elapsed_time_sec / 60, 2)
 
-    # In the Windows EXE, this needs to be saved to an output.txt file since the terminal closes
-    # Immediatly after the program finishes running
+    if caught_errors == "":
+        caught_errors = "None"
+
+    else:
+        print(
+            "Uh oh! There were some errors encountered with the selected files, please see the output for more details."
+        )
+
     print(f"Total time to run was {elapsed_time_sec} sec or {elapsed_time_min} min")
+
+    # Providing an output file with the time to run, the settings used, and any errors that were encountered
+    with open("Philament_output.txt", "w") as f:
+        f.write(
+            f"""Total time to run was {elapsed_time_sec} sec or {elapsed_time_min} min
+
+Parameters used were:
+{json.dumps(settings, indent = 4)}
+
+Errors:
+{caught_errors}
+"""
+        )
 
     showinfo(title="Finished", message=f"All Files Tracked and Saved")
 
