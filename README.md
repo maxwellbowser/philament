@@ -1,7 +1,13 @@
+# Philament 
+<p>
+   <a href="https://img.shields.io/pypi/l/localstack.svg"><img alt="PyPI License" src="https://img.shields.io/pypi/l/localstack.svg"></a>
+   <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+</p>
+
 # Overview
 
 Phil is a Python script that allows for automated analysis of centroid objects
-
+---
 ## Requirements
 
 Numpy
@@ -18,22 +24,18 @@ Pandas
 pip install -r requirements.txt
 ```
 
+5) Run phil_main.py in terminal ("python phil_main.py")
+3)  from the terminal (make sure to be in the directory that has the requirements.txt file)
+   
+## Running
+
+Running Philament is extremely simple, just run 
 ```powershell
 python3 phil_main.py
 ```
-5) Run phil_main.py in terminal ("python phil_main.py")
-3)  from the terminal (make sure to be in the directory that has the requirements.txt file)
-## Running
-```javascript I'm A tab
-console.log('Code Tab A');
-```
-```javascript I'm tab B
-console.log('Code Tab B');
-```
-
+in terminal and wait for the GUI to appear!
 
 ## Usage
-
 Philament starting user interface:
 
 ![image](https://github.com/maxwellbowser/philament/assets/107726558/e7c1fe65-7006-4170-b5ed-b91cdb83aa87)
