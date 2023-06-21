@@ -14,13 +14,13 @@ Pandas
 
 1) Download all .py files, as well as requrirements.txt
    
-'''powershell
+```powershell
 pip install -r requirements.txt
-'''
+```
 
-'''powershell
+```powershell
 python3 phil_main.py
-'''
+```
 5) Run phil_main.py in terminal ("python phil_main.py")
 3)  from the terminal (make sure to be in the directory that has the requirements.txt file)
 ## Running
