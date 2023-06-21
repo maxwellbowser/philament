@@ -13,9 +13,9 @@ Pandas
 ## Installing
 
 1) Download all .py files, as well as requrirements.txt
-2) `pip install -r requirements.txt
+2) '''pip install -r requirements.txt'''
 3)  from the terminal (make sure to be in the directory that has the requirements.txt file)
-4) 'python3 phil_main.py
+4) '''python3 phil_main.py'''
 5) Run phil_main.py in terminal ("python phil_main.py")
 
 ## Running
