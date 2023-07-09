@@ -1,4 +1,4 @@
-Philament
+# Philament
 
 <p align=center>
    <a href="https://github.com/maxwellbowser/philament/blob/master/LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue"></a>
