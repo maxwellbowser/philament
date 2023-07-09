@@ -1,4 +1,5 @@
-# Philament
+# Philament: Automated and Easy-to-Use Object Tracking
+
 <p>
    <a href="https://github.com/maxwellbowser/philament/blob/master/LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue"></a>
    <a href="https://google.com"><img alt= "Citation reference: DOI" src="https://img.shields.io/badge/DOI-[insert here]-forestgreen"></a>
