@@ -3,16 +3,13 @@
 Philament (Phil for short) allows for automated analysis of centroid objects, specifically designed for the In-Vitro Motility assay. By implementing Phil in the workflow for data analysis, literally days and weeks can be shaved off of analysis times by chaining automated, accurate, and reproducible tracking with an easy to use UI.
 
 ## Installing
- 
-1) Installing required libraries is easiest with `pip`:
+
+Installing required libraries is easiest with `pip`:
    
 ```
 pip install -r requirements.txt
 ```
 
-5) Run phil_main.py in terminal ("python phil_main.py")
-3)  from the terminal (make sure to be in the directory that has the requirements.txt file)
-   
 ## Running
 
 Using Philament is extremely simple and is done by running the main file with python3:
