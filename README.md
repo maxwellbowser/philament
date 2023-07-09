@@ -22,7 +22,7 @@ After a few moments, the GUI will appear, ready for analysis!
 ## Usage
 Philament starting user interface:
 
-![image](https://github.com/maxwellbowser/philament/assets/107726558/e7c1fe65-7006-4170-b5ed-b91cdb83aa87)
+![image](https://github.com/maxwellbowser/philament/assets/107726558/f90f2bdf-662f-4946-8c97-d41630f4ff02)
 
 
 
