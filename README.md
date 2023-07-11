@@ -7,7 +7,7 @@ Philament (Phil for short) allows for automated analysis of centroid objects, sp
 Installing required libraries is easiest with `pip`:
    
 ```
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ## Running
