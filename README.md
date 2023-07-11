@@ -4,7 +4,12 @@ Philament (Phil for short) allows for automated analysis of centroid objects, sp
 
 ## Installing
 
-Installing required libraries is easiest with `pip`:
+Step 1: Click on the green Code button and download the Zipfile.
+Step 2: Unzip the file and put the folder in the directory of your choice.
+Step 3: Open a terminal (MacOS) or command prompt (Windows) and navigate to that folder.
+Step 4: Type “pip3 install -r requirements.txt” this will tell Python3 to install all needed modules and libraries.
+Step 5: Run the program from within the same folder, do not move anything out of that folder.25fc69d0)
+
    
 ```
 pip3 install -r requirements.txt
