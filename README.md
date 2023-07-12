@@ -4,15 +4,19 @@ Philament (Phil for short) allows for automated analysis of centroid objects, sp
 
 ## Installing
 
-Step 1: Click on the green Code button and download the Zipfile.
+1. Download the repository files (Green "<> Code" button, "Download ZIP")
 
-Step 2: Unzip the file and put the folder in the directory of your choice.
+2. Unzip all contents of the folder
 
-Step 3: Open a terminal (MacOS) or command prompt (Windows) and navigate to that folder.
+3. Open a terminal (MacOS) or command prompt (Windows) and navigate to that folder
 
-Step 4: Type "pip3 install -r requirements.txt" this will tell Python3 to install all needed modules and libraries.
+4. Run the following line, to install the required libraries
+   
+```
+pip3 install -r requirements.txt
+```
 
-Step 5: Run the program from within the same folder, do not move anything out of that folder.
+5. See below for running the program!
 
 ## Running
 
@@ -22,6 +26,8 @@ python3 phil_main.py
 ```
 
 After a few moments, the GUI will appear, ready for analysis!
+
+**Please note that phil_main.py, phil_thresh.py, and phil_track.py must all be in the same directory (folder) to run properly.**
 
 ## Usage
 Philament starting user interface:
