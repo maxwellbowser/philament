@@ -4,6 +4,7 @@ from tkinter import ttk
 
 
 from tkinter.messagebox import showinfo
+from tkinter import messagebox
 import os
 import os.path
 import sys
@@ -54,12 +55,18 @@ def sample_generation(filepaths):
 # Always at least 1 video, and capped at 5 if n > 200 (n is number of selected files)
 
 
-def threshold_value_testing(List_of_Filepaths):
-    # not super neccesary, but its easier to bundle these two commands together this way...
+def threshold_value_testing(filepaths_list, screen_dimensions):
+    # close() is not super neccesary, but its easier to bundle these two commands together this way...
     # sorry Tim Peters
     def close():
         window.destroy()
         cv2.destroyAllWindows()
+
+    # If user closes thresholding window:
+    def on_closing():
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            window.destroy()
+            sys.exit()
 
     # This function allows for the changing of thresholding values to also
     # change the image shown to the user. So if threshold changes from 50->60,
@@ -70,28 +77,37 @@ def threshold_value_testing(List_of_Filepaths):
         ret, thresholded_checked = cv2.threshold(
             blur, threshold_value.get(), 255, cv2.THRESH_BINARY_INV
         )
-        # Need to implement scaling
-        # cv2.resize(object, (height, width)) is the function needed to change the frame if it's too large
-        cv2.imshow("Thresholded Image", thresholded_checked)
-        cv2.imshow("Original Image", checking_images[0])
+
+        # Scaling Tiffs so they will always fit on screen, even if theyre v v large
+        frame_size = thresholded_checked.shape
+        frame_size = (int(screen_dimensions[0] / 2), int(screen_dimensions[1] / 1.8))
+
+        thresh_img = cv2.resize(thresholded_checked, frame_size)
+        regular_img = cv2.resize(checking_images[0], frame_size)
+
+        cv2.imshow("Thresholded Image", thresh_img)
+
+        cv2.imshow("Original Image", regular_img)
+
         cv2.waitKey(5)
 
     thresh_values = []
-    rand_file_num, num_files_for_threshold = sample_generation(List_of_Filepaths)
+    rand_file_num, num_files_for_threshold = sample_generation(filepaths_list)
 
     # Philament now has the capability to threshold .avi files, so these lines just
     # look for the string "avi" at the end of the filenames, to automatically change
     # the pipeline to AVI files
     is_avi = False
-    if "avi" in List_of_Filepaths[rand_file_num[0]][-3:]:
+    if "avi" in filepaths_list[rand_file_num[0]][-3:]:
         is_avi = True
 
     # running the thresholding picker gui
     for i in range(0, len(rand_file_num)):
         window = tk.Tk()
         window.title("Checking Thresholding Value")
-        window.geometry("425x250")
-        window.resizable(False, False)
+        window.geometry(
+            f"{int(screen_dimensions[0]*.25)}x{int(screen_dimensions[1]*0.16)}"
+        )
         window.eval("tk::PlaceWindow . center")
 
         thresh_check_frame = ttk.Frame(window, padding="5 5 10 10")
@@ -104,12 +120,12 @@ def threshold_value_testing(List_of_Filepaths):
 
         # This reader function from PIMS is utilized instead of the opencv imread
         if is_avi == True:
-            checking_images = PyAVVideoReader(List_of_Filepaths[rand_file_num[i]])
+            checking_images = PyAVVideoReader(filepaths_list[rand_file_num[i]])
 
         else:
             loaded, checking_images = cv2.imreadmulti(
                 mats=checking_images,
-                filename=List_of_Filepaths[rand_file_num[i]],
+                filename=filepaths_list[rand_file_num[i]],
                 flags=cv2.IMREAD_GRAYSCALE,
             )
 
@@ -124,7 +140,7 @@ def threshold_value_testing(List_of_Filepaths):
             orient="horizontal",
             variable=threshold_value,
             command=double_check,
-            length=200,
+            length=(int(screen_dimensions[0] * 0.12)),
         ).grid(column=0, row=1)
 
         cont_but = ttk.Button(thresh_check_frame, text="Continue", command=close).grid(
@@ -142,6 +158,8 @@ def threshold_value_testing(List_of_Filepaths):
         # Providing an unused value seems strange, but the 0 here means nothing
         # It's just a workaround to have this work, I'm not 100 % sure why it does
         double_check(0)
+
+        window.protocol("WM_DELETE_WINDOW", on_closing)
         thresh_check_frame.mainloop()
         thresh_values.append(threshold_value.get())
 
@@ -195,6 +213,7 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
 
                     avi_size = original_images.frame_shape
 
+                    # Fourcc code for AVI
                     fourcc = cv2.VideoWriter_fourcc(*"XVID")
                     avi_image = cv2.VideoWriter(
                         "Thresh-" + filename, fourcc, fps, (avi_size[1], avi_size[0])
@@ -221,7 +240,7 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
                     else:
                         threshold_images.append(image)
 
-                # the file name is specified in line 193ish, and releasing is key for saving memory
+                # the file name is specified in line 193ish, saving memory here (I hope)
                 if is_avi == True:
                     avi_image.release()
 
@@ -238,7 +257,7 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
                     message=f"Sorry, there was an error with: {filename[i]}\nPhil couldn't determine if it is a file or not.\nPlease try again.",
                 )
 
-    # There were a few times I got a random NameError, so added this
+    # There were a few times I got a random NameError, so added this as failsafe, still unsure of cause
     except NameError:
         showinfo(
             title="Error",

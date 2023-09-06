@@ -3,7 +3,7 @@
 # object for all of the imported videos!
 
 # All code and comments written by Ryan Bowser (@maxwellbowser on github, ryanmaxwellbowser@gmail.com)
-# Feel free to shoot me an email if you have any questions! (I will be away Summer 2023, so no promises on replies)
+# Feel free to shoot me an email if you have any questions!
 
 
 import trackpy as tp
@@ -19,6 +19,7 @@ from tkinter import filedialog as fd
 import cv2
 import sys
 from time import time
+import ctypes
 
 
 import tkinter as tk
@@ -77,7 +78,7 @@ if __name__ == "__main__":
     e.g
     1Lmod-01, 10Lmod-01, 100Lmod-01 | Reverse index is unaffected
 
-    Later in the script, the selected file names will have Thresh- prefixes and .tif suffixes added, which is accounted for
+    Later in the script, the selected file names will have Thresh- prefixes and .tif/.avi suffixes added, which is accounted for
     by adding them before finding the indices.
 
     e.g.
@@ -96,14 +97,15 @@ if __name__ == "__main__":
             "Thresh-" + naming_input + ".tif"
         )  # The suffix could also be .avi
 
-        test_list = list(naming_input)
+        name_as_list = list(naming_input)
 
-        counter = 0
-        for char in test_list:
+        # Here I am using this variable instead of the index() function to get the position of the *'s, because index only returns the first instance
+        char_index = 0
+        for char in name_as_list:
             if char == "*":
-                slash_positions.append(counter)
+                slash_positions.append(char_index)
 
-            counter += 1
+            char_index += 1
 
         if len(slash_positions) > 2:
             showinfo(
@@ -121,6 +123,7 @@ if __name__ == "__main__":
                 "Uh Oh!",
                 "You forgot to surround the Naming Convention file number with asterisks (*)! \nPlease restart Phil and try again...",
             )
+            sys.exit()
         return slash_positions
 
     # This will check if the default values have already been made
@@ -145,11 +148,23 @@ if __name__ == "__main__":
     global was_avi
     was_avi = settings["was_avi"]
 
-    # Setting up root & frames for the starting GUI
+    # This provides awareness for high resolution Monitors, so the GUIs are *crisp*
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+
+    # Getting screen information for adaptive UI sizing (Not super important but why not)
+    info = tk.Tk()
+    screen_width = info.winfo_screenwidth()
+    screen_height = info.winfo_screenheight()
+    info.update()
+    info.destroy()
+
+    # Finally creating the starting UI
     root = tk.Tk()
     root.title("Welcome to Philament!  (v0.1.0)")
-    root.geometry("550x425")
-    root.minsize(450, 370)
+
+    # Setting the UI width to 1/3rd the screen width and 2/5ths the screen height
+    # Just creative choice, no mathematical reasoning behind this...
+    root.geometry(f"{int(screen_width/3)}x{int(screen_height*(2/5))}")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
 
@@ -273,7 +288,9 @@ if __name__ == "__main__":
 
     name_index = Naming_Indices(settings["naming_convention"])
 
-    threshold_value, is_avi = threshold_value_testing(filepath)
+    threshold_value, is_avi = threshold_value_testing(
+        filepath, (screen_width, screen_height)
+    )
 
     # This is just to remember if user analyzed .avi files in their last run
     # If so, the options for the file explorer defaults to .avi files
@@ -313,7 +330,7 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     root.title("Progress Bar")
-    root.geometry("300x150")
+    root.geometry(f"{int(screen_width*.15)}x{int(screen_height*0.15)}")
 
     frame = ttk.Frame(root)
     frame.grid(column=0, row=1, padx=0, pady=2)
@@ -365,6 +382,8 @@ if __name__ == "__main__":
 
     # Breaking the list into nested lists, to separate sample condition data into different groups
     # This allows for much easier loops when the tracking and data formating is done
+
+    # List comprehension, yay!
     split_list = [
         thresholded_tifs[i : i + settings["sheet_size"]]
         for i in range(0, len(thresholded_tifs), settings["sheet_size"])
@@ -375,7 +394,8 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     root.title("Progress Bar")
-    root.geometry("300x150")
+    # Change this
+    root.geometry(f"{int(screen_width*.15)}x{int(screen_height*0.15)}")
 
     frame = ttk.Frame(root)
     frame.grid(column=0, row=1, padx=0, pady=2)

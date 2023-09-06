@@ -7,23 +7,25 @@ import cv2
 import pandas as pd
 import tifffile as tif
 from pims import PyAVVideoReader
+from matplotlib.pyplot import savefig, subplots
 
 
-# to automatically adjust for users with higher fps or longer video sequences (we use 5 fps and 10 sec videos)
+# This function creates a dictionary containing row names for the output DF, which will then be transposed into column names.
+# The Key is the row number, and the definition is always the same for the first 5 elements
+# The elements >5 are just the time in seconds that have passed since the beginning of the recording
 def column_naming(df_length, file_fps):
     df_dict = {
         0: "Particle",
-        1: "First X",
-        2: "First Y",
-        3: "First Frame",
+        1: "FirstX",
+        2: "FirstY",
+        3: "First_Frame",
         4: "Displacement",
     }
     recip_fps = 1 / file_fps
 
     # This loop writes the intervals between frames in seconds.
     # For a 5fps movie, 10 sec long, the intervals will be in 1/5fps (0.2) seconds
-    # and will contain 50 cells (the calculation on line 28 is just
-    # getting the time passed, starting with 0.2 + 0.2 = 0.4)
+    # and will contain 50 cells (the calculation on line 28 is just getting the time passed, starting with 0.2 + 0.2 = 0.4)
     for cell in range(5, df_length):
         df_dict[cell] = recip_fps
         recip_fps += 1 / file_fps
@@ -35,10 +37,10 @@ def column_naming(df_length, file_fps):
 """
 tracking_data_analysis
 Inputs:
-split_list -> nested lists containing the pathnames for preprocessed .tif image sequences
-progress -> int used for progress window
-root -> tk root of progress window
-settings_list -> list containing the user defined parameters, such as search radius and tracking memory
+split_list -> nested lists containing the filepaths for preprocessed .tif image sequences
+progress -> int used for progress bar window
+root -> tk root of progress bar window
+settings -> dict containing the user defined parameters, such as search radius and tracking memory
 name_indices -> tuple containing the negative indices of the file number, to keep track of which video the analyzed data came from
 
             Workflow
@@ -133,8 +135,11 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
 
             linked_obj = linked_obj.sort_values(by=["particle", "frame"])
 
-            # Uncomment the line below to get plots of object paths (ruins automation workflow)
-            # tp.plot_traj(linked_obj)
+            # Creating Path images for files!
+            fig, ax = subplots()
+            paths_fig = tp.plot_traj(linked_obj, label=True, ax=ax)
+
+            savefig(f"{filename[:name_indices[1]]}-Paths.png")
 
             # This next section is getting the speed and positional data about the objects
             # The data is formatted as follows (example data):
@@ -258,7 +263,7 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
                     pass
 
             obj_size_df = pd.DataFrame(
-                obj_size_list, columns=["Average Obj Size", "Std of Obj Size"]
+                obj_size_list, columns=["Avg_Obj_Size", "Std_Obj_Size"]
             )
 
             # This is joining the two dataframes together, for the final/ output DataFrame
