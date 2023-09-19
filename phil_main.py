@@ -19,7 +19,7 @@ from tkinter import filedialog as fd
 import cv2
 import sys
 from time import time
-import ctypes
+import platform
 
 
 import tkinter as tk
@@ -32,10 +32,6 @@ import json
 if __name__ == "__main__":
     # This line is neccesary for proper running after being compiled with pyinstaller
     # multiprocessing.freeze_support()
-
-    todays_date = date.today()
-
-    # Handling user closing window, so that the program will end
 
     def on_closing():
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
@@ -67,31 +63,30 @@ if __name__ == "__main__":
 
         root.destroy()
 
-    """
-    Naming_Indices:
-    Input: naming_input is a string, containing exactly 2 "*" characters
-    Output: slash_positions is a tuple, containing the 2 reverse indices of the "*" contained text
-    
-    This function takes in a string (naming_input), and returns the reverse indices of whatever is contained between
-    the two lines. I chose to do reverse indices, because our file naming system will increase the length of the file-
-    name in the front of the string, but the file number is in the back of the string.
-    e.g
-    1Lmod-01, 10Lmod-01, 100Lmod-01 | Reverse index is unaffected
-
-    Later in the script, the selected file names will have Thresh- prefixes and .tif/.avi suffixes added, which is accounted for
-    by adding them before finding the indices.
-
-    e.g.
-    naming_input is "100-Tropomodulin*01*"
-    This means the normal filename would be "100-Tropomodulin01"
-    The future actual filename would be "Thresh-100-Tropomodulin01.tif"
-    slash_positions = (-6, -4)
-    
-    So eventually, when filename = Thresh-100-Tropomodulin01.tif, 
-    filename[slash_positions[0]:slash_positions[1]] returns "01"       
-    """
-
     def Naming_Indices(naming_input):
+        """
+        Naming_Indices:
+        Input: naming_input is a string, containing exactly 2 "*" characters
+        Output: slash_positions is a tuple, containing the 2 reverse indices of the "*" contained text
+
+        This function takes in a string (naming_input), and returns the reverse indices of whatever is contained between
+        the two lines. I chose to do reverse indices, because our file naming system will increase the length of the file-
+        name in the front of the string, but the file number is in the back of the string.
+        e.g
+        1Lmod-01, 10Lmod-01, 100Lmod-01 | Reverse index is unaffected
+
+        Later in the script, the selected file names will have Thresh- prefixes and .tif/.avi suffixes added, which is accounted for
+        by adding them before finding the indices.
+
+        e.g.
+        naming_input is "100-Tropomodulin*01*"
+        This means the normal filename would be "100-Tropomodulin01"
+        The future actual filename would be "Thresh-100-Tropomodulin01.tif"
+        slash_positions = (-6, -4)
+
+        So eventually, when filename = Thresh-100-Tropomodulin01.tif,
+        filename[slash_positions[0]:slash_positions[1]] returns "01"
+        """
         slash_positions = []
         naming_input = (
             "Thresh-" + naming_input + ".tif"
@@ -126,8 +121,17 @@ if __name__ == "__main__":
             sys.exit()
         return slash_positions
 
+    if platform.system() == "Windows":
+        # This provides awareness for high resolution Monitors, so the GUIs are *crisp*
+        # I have not found a solution for mac/linux...
+        import ctypes
+
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)
+
+    todays_date = date.today()
+
     # This will check if the default values have already been made
-    # If not, it sets them to our preset values and then creates a default_value file
+    # If not, it sets them to our preset values and then creates a settings file
     if os.path.exists("Phil-Settings.json") == True:
         f = open("Phil-Settings.json")
         settings = json.load(f)
@@ -143,13 +147,11 @@ if __name__ == "__main__":
             "was_avi": False,
             "full_obj_data": False,
             "naming_convention": "ActinMyosin-*01*",
+            "paths": False,
         }
 
     global was_avi
     was_avi = settings["was_avi"]
-
-    # This provides awareness for high resolution Monitors, so the GUIs are *crisp*
-    ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
     # Getting screen information for adaptive UI sizing (Not super important but why not)
     info = tk.Tk()
@@ -448,13 +450,16 @@ if __name__ == "__main__":
     print(f"Total time to run was {elapsed_time_sec} sec or {elapsed_time_min} min")
 
     # Providing an output file with the time to run, the settings used, and any errors that were encountered
+    # Change this output file to be named after the time/date of the run, and include the seed that was used
+    # when generating the random selection of the movies #todo
     with open("Philament_output.txt", "w") as f:
         f.write(
             f"""Total time to run was {elapsed_time_sec} sec or {elapsed_time_min} min
 
 Parameters used were:
 {json.dumps(settings, indent = 4)}
-
+Thresholding Value:
+{threshold_value}
 Errors:
 {caught_errors}
 """

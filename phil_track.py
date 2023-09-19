@@ -86,7 +86,7 @@ name_indices -> tuple containing the negative indices of the file number, to kee
 
 def tracking_data_analysis(split_list, progress, root, settings, name_indices, is_avi):
     caught_exceptions = ""
-    # Tracking the objects & saving to excel sheet (does i .tif videos at a time, specified by sheet_size)
+    # Tracking the objects & saving to csv file (does i .tif/avi videos at a time, specified by sheet_size)
     for j in range(0, len(split_list)):
         # Defining Variables / Clearing Dataframes
         full_obj_df = pd.DataFrame()
@@ -135,11 +135,15 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
 
             linked_obj = linked_obj.sort_values(by=["particle", "frame"])
 
-            # Creating Path images for files!
-            fig, ax = subplots()
-            paths_fig = tp.plot_traj(linked_obj, label=True, ax=ax)
+            if settings["paths"] == True:
+                # Creating Path images for files!
+                fig, ax = subplots()
+                paths_fig = tp.plot_traj(linked_obj, superimpose=frames[0], ax=ax)
 
-            savefig(f"{filename[:name_indices[1]]}-Paths.png")
+                savefig(
+                    f"{filename[:name_indices[1]]}-Paths.png",
+                    dpi=250,
+                )
 
             # This next section is getting the speed and positional data about the objects
             # The data is formatted as follows (example data):
@@ -279,6 +283,7 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
 
             final_df = pd.concat([final_df, output_df])
 
+        # Put in calculations for average speeds (for files as well as conditions, maybe summary file) #todo
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7 : name_indices[0]]
         final_df.to_csv(f"{proper_name}.csv", index=0)

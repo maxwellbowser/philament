@@ -39,6 +39,7 @@ def sample_generation(filepaths):
         num_files_for_threshold = 1
 
     # Picking the threshold sample group
+    # I want to also implement a seed generation, for scientific reproducibility
     try:
         rand_file_num = random.sample(range(0, len(filepaths)), num_files_for_threshold)
 
@@ -72,15 +73,18 @@ def threshold_value_testing(filepaths_list, screen_dimensions):
     # change the image shown to the user. So if threshold changes from 50->60,
     # this function is called to reshow the image with the updated threshold.
     def double_check(value):
+        # This setting / converting of the threshold value to an int makes it so the threshold display is always an int
+        # without it, the number will show super long decimals...
+        threshold_value.set(int(threshold_value.get()))
         blur = cv2.medianBlur(checking_images[0], 5)
 
         ret, thresholded_checked = cv2.threshold(
             blur, threshold_value.get(), 255, cv2.THRESH_BINARY_INV
         )
 
-        # Scaling Tiffs so they will always fit on screen, even if theyre v v large
+        # Scaling images so they will always fit on screen, even if they're v v large
         frame_size = thresholded_checked.shape
-        frame_size = (int(screen_dimensions[0] / 2), int(screen_dimensions[1] / 1.8))
+        frame_size = (int(screen_dimensions[0] / 1.8), int(screen_dimensions[1] / 1.6))
 
         thresh_img = cv2.resize(thresholded_checked, frame_size)
         regular_img = cv2.resize(checking_images[0], frame_size)
@@ -133,7 +137,24 @@ def threshold_value_testing(filepaths_list, screen_dimensions):
         threshold_value = tk.IntVar(thresh_check_frame, 100)
 
         # Widgets! I chose not to show threshold value to eliminate human bias & simplicity
-        slider = ttk.Scale(
+        current_threshold_label = ttk.Label(
+            thresh_check_frame,
+            textvariable=threshold_value,
+        ).grid(column=0, row=2, padx=20, pady=10)
+
+        ttk.Button(thresh_check_frame, text="Continue", command=close).grid(
+            column=1, row=1, padx=10, pady=5
+        )
+
+        ttk.Label(thresh_check_frame, text="Select best thresholding value:").grid(
+            column=0, row=0, padx=20, pady=10
+        )
+        ttk.Label(
+            thresh_check_frame,
+            text=f"Image {current_num} out of {num_files_for_threshold}",
+        ).grid(column=1, row=0, padx=20, pady=10)
+
+        ttk.Scale(
             thresh_check_frame,
             from_=255,
             to=0,
@@ -142,18 +163,6 @@ def threshold_value_testing(filepaths_list, screen_dimensions):
             command=double_check,
             length=(int(screen_dimensions[0] * 0.12)),
         ).grid(column=0, row=1)
-
-        cont_but = ttk.Button(thresh_check_frame, text="Continue", command=close).grid(
-            column=1, row=1, padx=10, pady=5
-        )
-
-        ttk.Label(
-            thresh_check_frame, text="Select best thresholding value:", font=12
-        ).grid(column=0, row=0, padx=20, pady=10)
-        ttk.Label(
-            thresh_check_frame,
-            text=f"Image {current_num} out of {num_files_for_threshold}",
-        ).grid(column=1, row=0, padx=20, pady=10)
 
         # Providing an unused value seems strange, but the 0 here means nothing
         # It's just a workaround to have this work, I'm not 100 % sure why it does
