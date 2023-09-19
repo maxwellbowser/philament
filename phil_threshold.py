@@ -18,9 +18,9 @@ from pims import PyAVVideoReader
 # this generates the sample size for showing the user images to
 # threshold, as well as picking the videos to be used for said sample
 def sample_generation(filepaths):
-    # This determines the sample size for thresholding videos
-    # Where the user is always shown at least 1, and every 50 videos added increases
-    # the sample size by 1, with a max of 5 images, if >250 videos are selected
+    # This determines the sample size for thresholding videos.
+    # The user is always shown at least 1 and every 50 videos added increases
+    # the sample size by 1, with a max of 5 images if >250 videos are selected
     multiples_of_50 = len(filepaths) // 50
 
     if multiples_of_50 == 1:
@@ -177,37 +177,34 @@ def threshold_value_testing(filepaths_list, screen_dimensions):
     return threshold_value, is_avi
 
 
-"""
-Thresholding_files takes in:
-    [List] containing the input filepaths (filepath)
-    Int containing the threshold value calculated from threshold_value_testing (threshold_value)
-    progress & root are tk variables for the progress bar
-    Is_avi indicates if the files are .avi (is_avi = True), or if they are .tif (is_avi = False)
-    Fps is the frame rate of the video
-
-            Workflow
----------------------------------
-1. for (loop) every file selected:
-
-    a. assert that it is a file
-    b. check if the file is .tif or .avi
-    c. read file using cv2 or pims respectively 
-
-    d. for (loop) every frame of each file:
-        *Median blur frame
-        *Threshold frame 
-
-    e. save thresholded movie as "Thresh" + original filename
-    f. increase progress bar by 1
-    g. repeat
-
-return
-
-"""
-
-
 def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
-    # Start of the data analysis, the thresholding and saving of files
+    """
+    Thresholding_files takes in:
+        [List] containing the input filepaths (filepath)
+        Int containing the threshold value calculated from threshold_value_testing (threshold_value)
+        progress & root are tk variables for the progress bar
+        Is_avi indicates if the files are .avi (is_avi = True), or if they are .tif (is_avi = False)
+        Fps is the frame rate of the video
+
+                Workflow
+    ---------------------------------
+    1. for (loop) every file selected:
+
+        a. assert that it is a file
+        b. check if the file is .tif or .avi
+        c. read file using cv2 or pims respectively
+
+        d. for (loop) every frame of each file:
+            *Median blur frame
+            *Threshold frame
+
+        e. save thresholded movie as "Thresh" + original filename
+        f. increase progress bar by 1
+        g. repeat
+
+    return
+
+    """
     try:
         for i in range(0, len(filepath)):
             # incase someone selects non-files

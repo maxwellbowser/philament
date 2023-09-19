@@ -12,7 +12,7 @@ from tkinter.messagebox import showinfo
 from tkinter import messagebox
 import os
 import os.path
-from datetime import date
+from datetime import datetime
 
 # import multiprocessing
 from tkinter import filedialog as fd
@@ -128,7 +128,7 @@ if __name__ == "__main__":
 
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
-    todays_date = date.today()
+    todays_date = datetime.now().strftime("%Y-%m-%d")
 
     # This will check if the default values have already been made
     # If not, it sets them to our preset values and then creates a settings file
@@ -162,7 +162,7 @@ if __name__ == "__main__":
 
     # Finally creating the starting UI
     root = tk.Tk()
-    root.title("Welcome to Philament!  (v0.1.0)")
+    root.title("Welcome to Philament!  (v0.1.1)")
 
     # Setting the UI width to 1/3rd the screen width and 2/5ths the screen height
     # Just creative choice, no mathematical reasoning behind this...
@@ -181,6 +181,7 @@ if __name__ == "__main__":
 
     # Tkinter variables being made
     tk_full_obj_data = tk.BooleanVar(value=settings["full_obj_data"])
+    tk_path_files = tk.BooleanVar(value=settings["paths"])
     tk_pixel_size = tk.DoubleVar(value=settings["pixel_size"])
     tk_object_area = tk.IntVar(value=settings["object_area"])
     tk_sheet_size = tk.IntVar(value=settings["sheet_size"])
@@ -217,7 +218,7 @@ if __name__ == "__main__":
         anchor="w",
     ).grid(column=0, row=6, padx=5, pady=5, sticky="W")
     ttk.Label(options_frame, text="Desired Folder Name:", anchor="n").grid(
-        column=0, row=1, padx=5, pady=5, sticky="N"
+        column=0, row=2, padx=5, pady=5, sticky="N"
     )
 
     # Checkbox / Entries being made
@@ -227,9 +228,16 @@ if __name__ == "__main__":
         variable=tk_full_obj_data,
         onvalue=True,
         offvalue=False,
-    ).grid(column=0, row=0, padx=10, pady=5, sticky="N")
+    ).grid(column=0, row=1, padx=10, pady=15, sticky="N")
+    ttk.Checkbutton(
+        options_frame,
+        text="Create path files?",
+        variable=tk_path_files,
+        onvalue=True,
+        offvalue=False,
+    ).grid(column=0, row=0, padx=10, pady=15, sticky="N")
     ttk.Entry(options_frame, width=10, textvariable=tk_date).grid(
-        column=0, row=2, padx=5, pady=5
+        column=0, row=3, padx=5, pady=5
     )
     ttk.Entry(values_frame, textvariable=tk_pixel_size).grid(
         column=1, row=0, padx=5, pady=5
@@ -279,6 +287,7 @@ if __name__ == "__main__":
         settings["fps"] = tk_fps.get()
         chosen_dir_name = tk_date.get()
         settings["naming_convention"] = tk_file_name.get()
+        settings["paths"] = tk_path_files.get()
 
     # If someone puts in "cat" or any string variable where a number is needed, or vice versa
     except:
@@ -307,7 +316,7 @@ if __name__ == "__main__":
 
     # Folder creation and changing cwd
     try:
-        dir_name = str(chosen_dir_name) + " - Analyzed Files"
+        dir_name = str(chosen_dir_name)
         current_dir = os.getcwd()
         new_dir = current_dir + "\\" + dir_name
         os.mkdir(new_dir)
@@ -377,15 +386,21 @@ if __name__ == "__main__":
     thresholded_tifs = []
     split_list = []
 
-    # Because we create a new CWD each time the program is run, every file in that folder is part of
+    # Because we create a new dir to save the thresholded files, every file in that folder is part of
     # the analysis sample. (unless some dummy puts a file in there while phil is still running)
     for x in os.listdir():
         thresholded_tifs.append(x)
 
+    # I chose to separate the path images from the rest of the files, I feel it makes it more organized
+    if settings["paths"] == True:
+        paths_dir = os.path.join(new_dir, "Path Images")
+        os.mkdir(paths_dir)
+
+    else:
+        paths_dir = None
+
     # Breaking the list into nested lists, to separate sample condition data into different groups
     # This allows for much easier loops when the tracking and data formating is done
-
-    # List comprehension, yay!
     split_list = [
         thresholded_tifs[i : i + settings["sheet_size"]]
         for i in range(0, len(thresholded_tifs), settings["sheet_size"])
@@ -428,7 +443,7 @@ if __name__ == "__main__":
     # This function takes care of all the tracking, linking, data analysis, and data formatting, as well as saving the files
     # I feel like I could segment this function into something more pythonic, but for now, it works
     caught_errors = tracking_data_analysis(
-        split_list, progress, root, settings, name_index, is_avi
+        split_list, progress, root, settings, name_index, is_avi, paths_dir
     )
 
     # Incase user clicks the red x and wants to shutdown the program.
@@ -452,7 +467,9 @@ if __name__ == "__main__":
     # Providing an output file with the time to run, the settings used, and any errors that were encountered
     # Change this output file to be named after the time/date of the run, and include the seed that was used
     # when generating the random selection of the movies #todo
-    with open("Philament_output.txt", "w") as f:
+    # Full datetime
+    abs_time = datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
+    with open(f"PhilOutput-{abs_time}.txt", "w") as f:
         f.write(
             f"""Total time to run was {elapsed_time_sec} sec or {elapsed_time_min} min
 

@@ -84,7 +84,9 @@ name_indices -> tuple containing the negative indices of the file number, to kee
 """
 
 
-def tracking_data_analysis(split_list, progress, root, settings, name_indices, is_avi):
+def tracking_data_analysis(
+    split_list, progress, root, settings, name_indices, is_avi, path_img_dir
+):
     caught_exceptions = ""
     # Tracking the objects & saving to csv file (does i .tif/avi videos at a time, specified by sheet_size)
     for j in range(0, len(split_list)):
@@ -140,9 +142,13 @@ def tracking_data_analysis(split_list, progress, root, settings, name_indices, i
                 fig, ax = subplots()
                 paths_fig = tp.plot_traj(linked_obj, superimpose=frames[0], ax=ax)
 
+                # Saving to Path folder
+                path_name = os.path.join(
+                    path_img_dir, f"{filename[:name_indices[1]]}.png"
+                )
                 savefig(
-                    f"{filename[:name_indices[1]]}-Paths.png",
-                    dpi=250,
+                    path_name,
+                    dpi=150,
                 )
 
             # This next section is getting the speed and positional data about the objects
