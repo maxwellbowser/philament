@@ -1,4 +1,5 @@
 from math import sqrt
+import numpy as np
 import trackpy as tp
 import os
 import os.path
@@ -88,6 +89,16 @@ def tracking_data_analysis(
     split_list, progress, root, settings, name_indices, is_avi, path_img_dir
 ):
     caught_exceptions = ""
+
+    # To make the analysis easier, this file will give a quick glimpse, ie. condition A is faster than condition B
+    summary_file = {
+        "Condition": [],
+        "# of Files": [],
+        "Average Speed": [],
+        "Speed SEM": [],
+        "Total # of Objects": [],
+    }
+
     # Tracking the objects & saving to csv file (does i .tif/avi videos at a time, specified by sheet_size)
     for j in range(0, len(split_list)):
         # Defining Variables / Clearing Dataframes
@@ -233,7 +244,28 @@ def tracking_data_analysis(
 
             displacement_df = displacement_df.transpose()
 
-            displacement_df.insert(0, "File", file_num, allow_duplicates=True)
+            # when avg_speed_lamba is called, it inserts a column, so the speeds are shifted one to the right
+            avg_speed_lambda = lambda row: np.nanmean(row[6:])
+            std_speed_lambda = lambda row: np.nanstd(row[7:])
+
+            displacement_df.insert(
+                0,
+                "File",
+                file_num,
+                allow_duplicates=True,
+            )
+
+            displacement_df.insert(
+                5,
+                "Avg Speed",
+                displacement_df.apply(avg_speed_lambda, axis=1),
+            )
+
+            displacement_df.insert(
+                6,
+                "Speed Std",
+                displacement_df.apply(std_speed_lambda, axis=1),
+            )
 
             displacement_df = displacement_df.reset_index(drop=True)
 
@@ -280,22 +312,35 @@ def tracking_data_analysis(
             output_df = obj_size_df.join(displacement_df)
 
             # What's happening in the .join() line:
-            # Average Obj Size | Std of Obj Size |  +  | File | Particle | 1st X | 1st Y | First Frame | Displacement |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 |
-            # -----------------------------------|  +  |---------------------------------------------------------------------------------------------------------------------------------------
-            #       14.86      |       7.38      |  +  |   1  |     0    |  150  |  150  |      0      |     18.6     |These sections are the instantaneous speed of the object at each frame
-            #       33.33      |       9.24      |  +  |   1  |     1    |  200  |  200  |      0      |     8.2      |  1.2 (Microns/sec)  |          2.3         |            0.5       |
-            #       55.06      |       5.18      |  +  |   1  |     2    |  168  |  15   |      2      |     1.55     |         0.3         |          0.8         |            1.2       |
-            #       ect...     |       ect...    |  +  |ect...|   ect... | ect...| ect...|    ect...   |    ect...    |       ect...        |         ect...       |           ect...     |
+            # Average Obj Size | Std of Obj Size |  +  | File | Particle | 1st X | 1st Y | First Frame |  Avg Speed   | Speed Std | Displacement |{reciprocal_fps} * 1 | {reciprocal_fps} * 2 | {reciprocal_fps} * 3 |
+            # -----------------------------------|  +  |-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+            #       14.86      |       7.38      |  +  |   1  |     0    |  150  |  150  |      0      |      2.5     |   3.342   |     18.6     |These sections are the instantaneous speed of the object at each frame
+            #       33.33      |       9.24      |  +  |   1  |     1    |  200  |  200  |      0      |      6.1     |   0.069   |     8.2      |  1.2 (Microns/sec)  |          2.3         |            0.5       |
+            #       55.06      |       5.18      |  +  |   1  |     2    |  168  |  15   |      2      |      0.5     |   0.420   |     1.55     |         0.3         |          0.8         |            1.2       |
+            #       ect...     |       ect...    |  +  |ect...|   ect... | ect...| ect...|    ect...   |     ect...   |   ect...  |    ect...    |       ect...        |         ect...       |           ect...     |
 
             final_df = pd.concat([final_df, output_df])
 
         # Put in calculations for average speeds (for files as well as conditions, maybe summary file) #todo
         filename = os.path.basename(split_list[j][0])
         proper_name = filename[7 : name_indices[0]]
+
+        # With the final DF finished, calculations for summary files start
+        file_speeds = np.array(final_df.iloc[:, 8:])
+
+        summary_file["Condition"].append(proper_name)
+        summary_file["# of Files"].append(i + 1)
+        summary_file["Average Speed"].append(np.nanmean(file_speeds))
+        summary_file["Speed SEM"].append(np.nanstd(file_speeds) / sqrt(len(final_df)))
+        summary_file["Total # of Objects"].append(len(final_df))
+
         final_df.to_csv(f"{proper_name}.csv", index=0)
 
         # Full object data option
         if settings["full_obj_data"] == True:
             full_obj_df.to_csv(f"{proper_name}-Full Object Data.csv")
+
+    summary_df = pd.DataFrame.from_dict(summary_file)
+    summary_df.to_csv("Summary.csv", index=0)
 
     return caught_exceptions

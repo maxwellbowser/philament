@@ -447,6 +447,7 @@ if __name__ == "__main__":
     )
 
     # Incase user clicks the red x and wants to shutdown the program.
+
     root.protocol("WM_DELETE_WINDOW", on_closing)
 
     end_time = int((time()) * 1000)
@@ -485,5 +486,6 @@ Errors:
     showinfo(title="Finished", message=f"All Files Tracked and Saved")
 
     # Opens folder where files were saved, so user can access them right away
-    folder = os.getcwd()
-    os.startfile(folder)
+    if platform.system() == "Windows" or platform.system() == "MacOS":
+        folder = os.getcwd()
+        os.startfile(folder)

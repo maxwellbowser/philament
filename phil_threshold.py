@@ -84,7 +84,7 @@ def threshold_value_testing(filepaths_list, screen_dimensions):
 
         # Scaling images so they will always fit on screen, even if they're v v large
         frame_size = thresholded_checked.shape
-        frame_size = (int(screen_dimensions[0] / 1.8), int(screen_dimensions[1] / 1.6))
+        frame_size = (int(screen_dimensions[0] / 2), int(screen_dimensions[1] / 1.8))
 
         thresh_img = cv2.resize(thresholded_checked, frame_size)
         regular_img = cv2.resize(checking_images[0], frame_size)
