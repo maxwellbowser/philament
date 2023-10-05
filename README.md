@@ -8,7 +8,7 @@ Philament (Phil for short) allows for automated analysis of centroid objects, sp
 
 2. Unzip all contents of the folder
 
-3. Open a terminal (MacOS) or command prompt (Windows) and navigate to that folder
+3. Open a terminal (MacOS) or command prompt (Windows) and navigate to the unzipped folder
 
 4. Run the following line, to install the required libraries
    
