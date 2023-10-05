@@ -1,6 +1,6 @@
 # Philament  <a href="https://github.com/maxwellbowser/philament/blob/master/LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue"></a>  <a href="https://google.com"><img alt= "Citation reference: DOI" src="https://img.shields.io/badge/DOI-[insert here]-forestgreen"></a>  <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
-Philament (Phil for short) allows for automated analysis of centroid objects, specifically designed for the In-Vitro Motility assay. By implementing Phil in the workflow for data analysis, literally days and weeks can be shaved off of analysis times by chaining automated, accurate, and reproducible tracking with an easy to use UI.
+Philament (Phil for short) allows for automated analysis of centroid objects, specifically designed for the In-Vitro Motility assay. By implementing Phil in the workflow for data analysis, hours can be shaved off of analysis times by chaining automated, accurate, and reproducible tracking with an easy to use UI.
 
 ## Installing
 
