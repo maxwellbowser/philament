@@ -29,6 +29,17 @@ After a few moments, the GUI will appear, ready for analysis!
 
 **Please note that phil_main.py, phil_thresh.py, and phil_track.py must all be in the same directory (folder) to run properly.**
 
+## Troubleshooting
+If after running the line,
+```
+python3 phil_main.py
+```
+you get an error "Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Manage App Execution Aliases." then you may need to run Philament with a slightly different line.
+
+```
+python phil_main.py
+```
+
 ## Usage
 Philament starting user interface:
 
