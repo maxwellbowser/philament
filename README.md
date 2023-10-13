@@ -1,6 +1,6 @@
 # Philament  <a href="https://github.com/maxwellbowser/philament/blob/master/LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue"></a>  <a href="https://google.com"><img alt= "Citation reference: DOI" src="https://img.shields.io/badge/DOI-[insert here]-forestgreen"></a>  <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
-Philament (Phil for short) allows for automated analysis of centroid objects, specifically designed for the In-Vitro Motility assay. By implementing Phil in the workflow for data analysis, literally days and weeks can be shaved off of analysis times by chaining automated, accurate, and reproducible tracking with an easy to use UI.
+Philament (Phil for short) allows for automated analysis of centroid objects, specifically designed for the In-Vitro Motility assay. By implementing Phil in the workflow for data analysis, hours can be shaved off of analysis times by chaining automated, accurate, and reproducible tracking with an easy to use UI.
 
 ## Installing
 
@@ -8,7 +8,7 @@ Philament (Phil for short) allows for automated analysis of centroid objects, sp
 
 2. Unzip all contents of the folder
 
-3. Open a terminal (MacOS) or command prompt (Windows) and navigate to that folder
+3. Open a terminal (MacOS) or command prompt (Windows) and navigate to the unzipped folder
 
 4. Run the following line, to install the required libraries
    
@@ -28,6 +28,17 @@ python3 phil_main.py
 After a few moments, the GUI will appear, ready for analysis!
 
 **Please note that phil_main.py, phil_thresh.py, and phil_track.py must all be in the same directory (folder) to run properly.**
+
+## Troubleshooting
+If after running the line,
+```
+python3 phil_main.py
+```
+you get an error "Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Manage App Execution Aliases." then you may need to run Philament with a slightly different line.
+
+```
+python phil_main.py
+```
 
 ## Usage
 Philament starting user interface:
