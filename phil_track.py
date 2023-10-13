@@ -8,7 +8,6 @@ import cv2
 import pandas as pd
 import tifffile as tif
 from pims import PyAVVideoReader
-from matplotlib.pyplot import savefig, subplots
 
 
 # This function creates a dictionary containing row names for the output DF, which will then be transposed into column names.
@@ -88,7 +87,26 @@ name_indices -> tuple containing the negative indices of the file number, to kee
 def tracking_data_analysis(
     split_list, progress, root, settings, name_indices, is_avi, path_img_dir
 ):
+    # Forcing matplotlib to use "Agg" instead of Tk for the path creation
+    # Otherwise this raises a RuntimeError
+    if settings["paths"] == True:
+        import matplotlib
+
+        matplotlib.use("Agg")
+
+        from matplotlib.pyplot import savefig, subplots, close
+
+        # Used this for messing with paths figures
+        # import matplotlib.pyplot as plt
+
     caught_exceptions = ""
+
+    # This is for changing the superimposed image
+    """
+    stacked_image = cv2.imread(
+        "C:\\Users\\panch\\Desktop\\Important\\Gregorio Lab\\Final Philament Paper\\FIGURE-Paths-V3\\100ugMyosin Paths\\ZProjections\\ZProjection-100ugMyosin06.tif"
+    )
+    """
 
     # To make the analysis easier, this file will give a quick glimpse, ie. condition A is faster than condition B
     summary_file = {
@@ -151,16 +169,23 @@ def tracking_data_analysis(
             if settings["paths"] == True:
                 # Creating Path images for files!
                 fig, ax = subplots()
-                paths_fig = tp.plot_traj(linked_obj, superimpose=frames[0], ax=ax)
+                paths_fig = tp.plot_traj(linked_obj, ax=ax, superimpose=frames[0])
+                # This line below is how kwargs are passed to plt.plot, so you can change the line thicknesses
+                # plot_style={"linewidth": 0.50, "color": "red"})
 
                 # Saving to Path folder
                 path_name = os.path.join(
                     path_img_dir, f"{filename[:name_indices[1]]}.png"
                 )
-                savefig(
-                    path_name,
-                    dpi=150,
-                )
+
+                # Options/ ways to save the figures without the axes
+                # plt.axis("off")
+                # savefig(path_name, bbox_inches="tight", pad_inches=0, dpi=150)
+
+                savefig(path_name, dpi=150)
+
+                # Make sure to empty memory after saving plots
+                close()
 
             # This next section is getting the speed and positional data about the objects
             # The data is formatted as follows (example data):

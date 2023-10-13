@@ -14,7 +14,7 @@ import os
 import os.path
 from datetime import datetime
 
-# import multiprocessing
+import multiprocessing
 from tkinter import filedialog as fd
 import cv2
 import sys
@@ -31,7 +31,7 @@ import json
 
 if __name__ == "__main__":
     # This line is neccesary for proper running after being compiled with pyinstaller
-    # multiprocessing.freeze_support()
+    multiprocessing.freeze_support()
 
     def on_closing():
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
@@ -166,6 +166,7 @@ if __name__ == "__main__":
 
     # Setting the UI width to 1/3rd the screen width and 2/5ths the screen height
     # Just creative choice, no mathematical reasoning behind this...
+    # SCALING
     root.geometry(f"{int(screen_width/3)}x{int(screen_height*(2/5))}")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
@@ -318,7 +319,7 @@ if __name__ == "__main__":
     try:
         dir_name = str(chosen_dir_name)
         current_dir = os.getcwd()
-        new_dir = current_dir + "\\" + dir_name
+        new_dir = os.path.join(current_dir, dir_name)
         os.mkdir(new_dir)
         os.chdir(new_dir)
 
@@ -341,6 +342,7 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     root.title("Progress Bar")
+    # SCALING
     root.geometry(f"{int(screen_width*.15)}x{int(screen_height*0.15)}")
 
     frame = ttk.Frame(root)
@@ -371,7 +373,7 @@ if __name__ == "__main__":
 
     # This function takes care of all of the thresholding and saving of files
     # See phil_threshold.py to read through the documentation
-    thresholding_files(
+    image = thresholding_files(
         filepath, threshold_value, progress, root, is_avi, settings["fps"]
     )
 
@@ -411,7 +413,7 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     root.title("Progress Bar")
-    # Change this
+    # SCALING
     root.geometry(f"{int(screen_width*.15)}x{int(screen_height*0.15)}")
 
     frame = ttk.Frame(root)

@@ -21,6 +21,7 @@ def sample_generation(filepaths):
     # This determines the sample size for thresholding videos.
     # The user is always shown at least 1 and every 50 videos added increases
     # the sample size by 1, with a max of 5 images if >250 videos are selected
+
     multiples_of_50 = len(filepaths) // 50
 
     if multiples_of_50 == 1:
@@ -76,13 +77,17 @@ def threshold_value_testing(filepaths_list, screen_dimensions):
         # This setting / converting of the threshold value to an int makes it so the threshold display is always an int
         # without it, the number will show super long decimals...
         threshold_value.set(int(threshold_value.get()))
-        blur = cv2.medianBlur(checking_images[0], 5)
+
+        # The median blurring kernel is set to 5, if desired, adjust below. I have written the tag #BLUR_KERNEL here to make it easy to ctrl-f
+        kernel_size = 5
+        blur = cv2.medianBlur(checking_images[0], kernel_size)
 
         ret, thresholded_checked = cv2.threshold(
             blur, threshold_value.get(), 255, cv2.THRESH_BINARY_INV
         )
 
-        # Scaling images so they will always fit on screen, even if they're v v large
+        # Resizing images so they will always fit on screen, even if they're v v large
+        # SCALING
         frame_size = thresholded_checked.shape
         frame_size = (int(screen_dimensions[0] / 2), int(screen_dimensions[1] / 1.8))
 
@@ -109,6 +114,7 @@ def threshold_value_testing(filepaths_list, screen_dimensions):
     for i in range(0, len(rand_file_num)):
         window = tk.Tk()
         window.title("Checking Thresholding Value")
+        # SCALING
         window.geometry(
             f"{int(screen_dimensions[0]*.25)}x{int(screen_dimensions[1]*0.16)}"
         )
@@ -206,6 +212,7 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
 
     """
     try:
+        kernel_size = 5
         for i in range(0, len(filepath)):
             # incase someone selects non-files
             assert os.path.isfile(filepath[i])
@@ -234,7 +241,7 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
 
                 for x in range(0, len(original_images)):
                     # Image processing (blur & thresholding)
-                    blur = cv2.medianBlur(original_images[x], 5)
+                    blur = cv2.medianBlur(original_images[x], kernel_size)
 
                     ret, image = cv2.threshold(
                         blur, threshold_value, 255, cv2.THRESH_BINARY_INV
@@ -270,4 +277,7 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
             message=f"Phil encountered a NameError. Try rerunning the program, and ensure all files selected are .tif or .avi image sequences",
         )
         sys.exit()
+
+    # putting this here to make a figure for review
+    # return original_images[0]
     return
