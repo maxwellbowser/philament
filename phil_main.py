@@ -14,7 +14,7 @@ import os
 import os.path
 from datetime import datetime
 
-import multiprocessing
+# import multiprocessing
 from tkinter import filedialog as fd
 import cv2
 import sys
@@ -31,7 +31,7 @@ import json
 
 if __name__ == "__main__":
     # This line is neccesary for proper running after being compiled with pyinstaller
-    multiprocessing.freeze_support()
+    # multiprocessing.freeze_support()
 
     def on_closing():
         if messagebox.askokcancel("Quit", "Do you want to quit?"):

@@ -28,6 +28,7 @@ def column_naming(df_length, file_fps):
     # and will contain 50 cells (the calculation on line 28 is just getting the time passed, starting with 0.2 + 0.2 = 0.4)
     for cell in range(5, df_length):
         df_dict[cell] = recip_fps
+        # f"{round(recip_fps,1)} (s)"  ## I'm putting this code here incase I want to implement this later but as of now, I know this is just going to be a pain
         recip_fps += 1 / file_fps
 
     return df_dict
@@ -64,7 +65,7 @@ name_indices -> tuple containing the negative indices of the file number, to kee
             - save first frame, first x/y, and particle number with displacement
 
             - for (loop) # of frames object is tracked
-                > calculate distances travelled and speed from frame to frame (pythag. eq.)
+                > calculate distances travelled and speed from frame to frame (pythag. equation)
                 > append value to list & repeat
             
             - combine speed df and positional info df
@@ -272,6 +273,7 @@ def tracking_data_analysis(
             # when avg_speed_lamba is called, it inserts a column, so the speeds are shifted one to the right
             avg_speed_lambda = lambda row: np.nanmean(row[6:])
             std_speed_lambda = lambda row: np.nanstd(row[7:])
+            path_length_lambda = lambda row: np.sum(row[8:] * reciprocol_fps)
 
             displacement_df.insert(
                 0,
@@ -290,6 +292,10 @@ def tracking_data_analysis(
                 6,
                 "Speed Std",
                 displacement_df.apply(std_speed_lambda, axis=1),
+            )
+
+            displacement_df.insert(
+                7, "Path Length", displacement_df.apply(path_length_lambda, axis=1)
             )
 
             displacement_df = displacement_df.reset_index(drop=True)
