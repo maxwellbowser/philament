@@ -8,9 +8,9 @@ from tkinter import messagebox
 import os
 import os.path
 import sys
+import tkinter as tk
 import cv2
 import tifffile as tif
-import tkinter as tk
 from numpy import array
 from pims import PyAVVideoReader
 
@@ -247,14 +247,14 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
                         blur, threshold_value, 255, cv2.THRESH_BINARY_INV
                     )
 
-                    if is_avi == True:
+                    if is_avi:
                         avi_image.write(image)
 
                     else:
                         threshold_images.append(image)
 
                 # the file name is specified in line 193ish, saving memory here (I hope)
-                if is_avi == True:
+                if is_avi:
                     avi_image.release()
 
                 else:
@@ -270,7 +270,8 @@ def thresholding_files(filepath, threshold_value, progress, root, is_avi, fps):
                     message=f"Sorry, there was an error with: {filename[i]}\nPhil couldn't determine if it is a file or not.\nPlease try again.",
                 )
 
-    # There were a few times I got a random NameError, so added this as failsafe, still unsure of cause
+    # There were a few times I got a random NameError, so added this as failsafe
+    # Still unsure of cause
     except NameError:
         showinfo(
             title="Error",

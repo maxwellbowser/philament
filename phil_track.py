@@ -90,7 +90,7 @@ def tracking_data_analysis(
 ):
     # Forcing matplotlib to use "Agg" instead of Tk for the path creation
     # Otherwise this raises a RuntimeError
-    if settings["paths"] == True:
+    if settings["paths"]:
         import matplotlib
 
         matplotlib.use("Agg")
@@ -271,6 +271,7 @@ def tracking_data_analysis(
             displacement_df = displacement_df.transpose()
 
             # when avg_speed_lamba is called, it inserts a column, so the speeds are shifted one to the right
+            # this is why the row slicing points increase by 1
             avg_speed_lambda = lambda row: np.nanmean(row[6:])
             std_speed_lambda = lambda row: np.nanstd(row[7:])
             path_length_lambda = lambda row: np.sum(row[8:] * reciprocol_fps)

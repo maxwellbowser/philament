@@ -2,7 +2,7 @@
 # and output thresholded .tif/.avi videos, along with a csv file with the frame to frame displacements of each
 # object for all of the imported videos!
 
-# All code and comments written by Ryan Bowser (@maxwellbowser on github, ryanmaxwellbowser@gmail.com)
+# All code and comments written by Ryan Bowser (@maxwellbowser on github, ryanbowser@arizona.edu)
 # Feel free to shoot me an email if you have any questions!
 
 
@@ -30,7 +30,7 @@ from phil_track import *
 import json
 
 if __name__ == "__main__":
-    # This line is neccesary for proper running after being compiled with pyinstaller
+    # This line below is neccesary for proper running after being compiled with pyinstaller
     # multiprocessing.freeze_support()
 
     def on_closing():
