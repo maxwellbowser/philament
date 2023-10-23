@@ -64,7 +64,13 @@ The search radius limits the area in which a filament can move from frame to fra
 The FPS of an experimental setup depends on the camera and capture software used, which varies from setup to setup. Please refer to the camera manufacturer’s user guide or capture software to determine the FPS. This value is something to keep in mind when testing values for object tracking memory, as higher shutter speeds can actually decrease the time allowed for an object’s path to be retained. For example, if object memory is set to 5 frames and the camera captures 5 frames per second, objects will have 1 second to return to view before their paths are not continued. However, if the camera captures 20 frames per second, then objects will only have a quarter of the time (0.25 seconds) to return to view. In our testing, it took around 1 second for us to regain focus while operating the microscope, and we set our tracking memory accordingly.
 
 ### Naming Convention:
-Philament uses a specific naming convention field to identify the file number and the condition of the experiment within the filename. Users need to follow this convention, otherwise, unexpected behaviors in the program can occur. Additional parameters to be cognizant of the Naming Convention are:  1) filenames must be consistent within the same condition (05ugMyosin-01… 05ugMyosin-10); 2) file numbers should be placed at the end of file names and; 3) 0’s should be added to single-digit file numbers, if including double-digit file numbers. 
+Philament uses a specific naming convention field to identify the file number and the condition of the experiment within the filename. Users need to follow this convention, otherwise, unexpected behaviors in the program can occur. 
+
+Rules of thumb:
+1)	Keep filenames consistent within the same condition (05ugMyosin-01, 05ugMyosin-02… 05ugMyosin-10)
+2)	Put file numbers at the end of file names
+3)	Add 0’s to single-digit file numbers, if including double-digit file numbers.  
+
 For example, an experiment studying interactions between actin and differing concentrations of myosin may have the base file name “Actin05ugMyosin01. The program needs to differentiate that the condition is “Actin05ugMyosin”, and that this is the first run, “01” (rather than mistakenly setting the condition as “ActinugMyosin01”, and the file number as “05”). By providing an example file name in the naming convention entry, “Actin05ugMyosin*01*”, the user is providing the positional information of where run numbers are contained within the file name. Philament can compensate for any other changes in the filename, as long as the file number stays in the same position relative to the end of the file name.
 
 As an example, the table below shows how Philament handles files in a given run when provided the naming convention: Actin05ugMyosin*01*
