@@ -43,7 +43,8 @@ python phil_main.py
 ## Usage
 Philament starting user interface:
 
-![image](https://github.com/maxwellbowser/philament/assets/107726558/f90f2bdf-662f-4946-8c97-d41630f4ff02)
+![SuppFig1](https://github.com/maxwellbowser/philament/assets/107726558/85452f61-17de-46d2-a386-fc9aacc887aa)
+
 
 ### Pixel Size:
 “Pixel size” is the scale factor for the camera setup used. This allows for the conversions from pixel to a real-world measurement, such as microns/sec rather than pixels/second. The value 0.139, indicates that each pixel is 0.139 units of size in width and height. If the output is desired in pixel measurements, this field should be set to 1.
