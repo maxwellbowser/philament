@@ -4,7 +4,7 @@ Philament (Phil for short) allows for automated analysis of centroid objects, sp
 
 ## Installing
 
-1. Download the repository files (Green "<> Code" button, "Download ZIP")
+1. Download the repository files (Green "<> Code" button, "Local" Tab, "Download ZIP")
 
 2. Unzip all contents of the folder
 
