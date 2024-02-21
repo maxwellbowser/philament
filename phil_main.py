@@ -162,7 +162,7 @@ if __name__ == "__main__":
 
     # Finally creating the starting UI
     root = tk.Tk()
-    root.title("Welcome to Philament!  (v0.1.1)")
+    root.title("Welcome to Philament!  (v0.1.0)")
 
     # Setting the UI width to 1/3rd the screen width and 2/5ths the screen height
     # Just creative choice, no mathematical reasoning behind this...
