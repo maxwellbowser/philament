@@ -107,7 +107,7 @@ To allow for fast comparisons of many conditions, we have also implemented an ou
 
 To strike a balance between user-friendly and customization, we chose to make some parameters of the tracking non-GUI adjustable. These variables are marked within the code and can be adjusted there. 
 
-### Search Kernel:
+### Median Blur Kernel:
 - This can be adjusted in phil_threshold.py, and there are two places this must be changed to have the desired effect. They are both saved as “kernel_size” which can be found with ctrl + f. Otherwise, the first instance is in the double_check function (which blurs the temp test thresholding images for the user) and the second is in the thresholding_files function, which does all of the blurring for the saved images. This did not seem important enough to include in the settings JSON file, so it was hard-coded in.
 
 ### Paths Image DPI (Dots-Per-Inch):
